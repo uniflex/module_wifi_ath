@@ -36,18 +36,34 @@ __email__ = "{gawlowicz, chwalisz}@tkn.tu-berlin.de"
 
 receivedMsgs = Queue()
 
-def receiveMsg(socket):
+def send_msg(socket, msg):
+    print('ATH9k sends answer')
+    socket.send(msg)
+
+def receive_msg(socket):
      while True:
             msg = socket.recv()
             print ("ATH9K driver recived msg: %s" % msg)
             receivedMsgs.put(msg)
             gevent.sleep(0)
 
-def processMsg(socket):
-    while not receivedMsgs.empty():
+def set_channel(channel):
+    print ("ATH9K sets channel: %s" % channel)
+
+def process_msg(socket):
+     while True:
         msg = receivedMsgs.get()
-        print('ATH9k process msg %s and sends answer' % msg)
-        socket.send("Msg from ath9k_driver")
+        print('ATH9k process msg: %s' % msg)
+
+        #TODO: get msg type
+        msgType = 1;
+        if msgType == "SET_CHANNEL":
+            set_channel(1)
+
+        else:
+            response = "Msg from ath9k_driver"
+            send_msg(socket, response)
+
         gevent.sleep(0)
 
 def main(args):
@@ -64,8 +80,8 @@ def main(args):
 
     try:
         gevent.joinall([
-            gevent.spawn(receiveMsg, socket),
-            gevent.spawn(processMsg, socket),
+            gevent.spawn(receive_msg, socket),
+            gevent.spawn(process_msg, socket),
         ])
     except KeyboardInterrupt:
         print "ath9k_driver exits"
