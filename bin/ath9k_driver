@@ -22,7 +22,7 @@ Other options:
 
 import logging
 import time
-import zmq
+import zmq.green as zmq
 import random
 import sys
 import gevent
@@ -37,34 +37,37 @@ __email__ = "{gawlowicz, chwalisz}@tkn.tu-berlin.de"
 receivedMsgs = Queue()
 
 def send_msg(socket, msg):
-    print('ATH9k sends answer')
+    log = logging.getLogger('ath9k_driver.main')
+    log.debug("ATH9k sends response: {0}".format(msg))
     socket.send(msg)
 
 def receive_msg(socket):
      while True:
             msg = socket.recv()
-            print ("ATH9K driver recived msg: %s" % msg)
+            log = logging.getLogger('ath9k_driver.main')
+            log.debug("ATH9K driver recived msg: {0}".format(msg))
             receivedMsgs.put(msg)
-            gevent.sleep(0)
 
 def set_channel(channel):
-    print ("ATH9K sets channel: %s" % channel)
+    log = logging.getLogger('ath9k_driver.main')
+    log.debug("ATH9K sets channel: {0}".format(channel))
+    msg = "!!SET_CHANNEL OK!!"
+    return  msg
 
 def process_msg(socket):
      while True:
         msg = receivedMsgs.get()
-        print('ATH9k process msg: %s' % msg)
+        log = logging.getLogger('ath9k_driver.main')
+        log.debug("ATH9k process msg: {0}".format(msg))
 
         #TODO: get msg type
-        msgType = 1;
+        response = None
+        msgType = msg
         if msgType == "SET_CHANNEL":
-            set_channel(1)
+            response = set_channel(1)
 
-        else:
-            response = "Msg from ath9k_driver"
+        if response:
             send_msg(socket, response)
-
-        gevent.sleep(0)
 
 def main(args):
     log = logging.getLogger('ath9k_driver.main')
@@ -84,7 +87,7 @@ def main(args):
             gevent.spawn(process_msg, socket),
         ])
     except KeyboardInterrupt:
-        print "ath9k_driver exits"
+        self.log.debug("ATH9k_driver exits")
 
 
 if __name__ == "__main__":
