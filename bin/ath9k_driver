@@ -43,11 +43,15 @@ def main(args):
     socket = context.socket(zmq.PAIR)
     socket.connect("tcp://localhost:%s" % port)
 
-    while True:
-        msg = socket.recv()
-        print "ATH9K driver recived ",msg
-        socket.send("Msg from ath9k_driver")
-        time.sleep(1)
+    try:
+        while True:
+            msg = socket.recv()
+            print "ATH9K driver recived ",msg
+            socket.send("Msg from ath9k_driver")
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print "ath9k_driver exits"
+
 
 if __name__ == "__main__":
     try:
