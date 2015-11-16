@@ -22,11 +22,9 @@ Other options:
 
 import logging
 import time
-import zmq.green as zmq
+import zmq
 import random
 import sys
-import gevent
-from gevent.queue import Queue
 
 __author__ = "Piotr Gawlowicz, Mikolaj Chwalisz"
 __copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
@@ -34,40 +32,31 @@ __version__ = "0.1.0"
 __email__ = "{gawlowicz, chwalisz}@tkn.tu-berlin.de"
 
 
-receivedMsgs = Queue()
-
-def send_msg(socket, msg):
-    log = logging.getLogger('ath9k_driver.main')
-    log.debug("ATH9k sends response: {0}".format(msg))
-    socket.send(msg)
-
-def receive_msg(socket):
-     while True:
-            msg = socket.recv()
-            log = logging.getLogger('ath9k_driver.main')
-            log.debug("ATH9K driver recived msg: {0}".format(msg))
-            receivedMsgs.put(msg)
-
 def set_channel(channel):
     log = logging.getLogger('ath9k_driver.main')
     log.debug("ATH9K sets channel: {0}".format(channel))
     msg = "!!SET_CHANNEL OK!!"
     return  msg
 
+
 def process_msg(socket):
      while True:
-        msg = receivedMsgs.get()
-        log = logging.getLogger('ath9k_driver.main')
-        log.debug("ATH9k process msg: {0}".format(msg))
+            msg = socket.recv()
+            log = logging.getLogger('ath9k_driver.main')
+            log.debug("ATH9K driver recived msg: {0}".format(msg))
 
-        #TODO: get msg type
-        response = None
-        msgType = msg
-        if msgType == "SET_CHANNEL":
-            response = set_channel(1)
+            log.debug("ATH9k process msg: {0}".format(msg))
 
-        if response:
-            send_msg(socket, response)
+            #TODO: get msg type
+            response = None
+            msgType = msg
+            if msgType == "SET_CHANNEL":
+                response = set_channel(1)
+
+            if response:
+                log.debug("ATH9k sends response: {0}".format(response))
+                socket.send(response)
+
 
 def main(args):
     log = logging.getLogger('ath9k_driver.main')
@@ -82,10 +71,7 @@ def main(args):
     socket.connect("tcp://localhost:%s" % port)
 
     try:
-        gevent.joinall([
-            gevent.spawn(receive_msg, socket),
-            gevent.spawn(process_msg, socket),
-        ])
+        process_msg(socket)
     except KeyboardInterrupt:
         self.log.debug("ATH9k_driver exits")
 
