@@ -73,7 +73,7 @@ def main(args):
     try:
         process_msg(socket)
     except KeyboardInterrupt:
-        self.log.debug("ATH9k_driver exits")
+        log.debug("ATH9k_driver exits")
 
 
 if __name__ == "__main__":
