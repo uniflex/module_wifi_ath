@@ -25,11 +25,30 @@ import time
 import zmq
 import random
 import sys
+import gevent
+from gevent.queue import Queue
 
 __author__ = "Piotr Gawlowicz, Mikolaj Chwalisz"
 __copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
 __version__ = "0.1.0"
 __email__ = "{gawlowicz, chwalisz}@tkn.tu-berlin.de"
+
+
+receivedMsgs = Queue()
+
+def receiveMsg(socket):
+     while True:
+            msg = socket.recv()
+            print ("ATH9K driver recived msg: %s" % msg)
+            receivedMsgs.put(msg)
+            gevent.sleep(0)
+
+def processMsg(socket):
+    while not receivedMsgs.empty():
+        msg = receivedMsgs.get()
+        print('ATH9k process msg %s and sends answer' % msg)
+        socket.send("Msg from ath9k_driver")
+        gevent.sleep(0)
 
 def main(args):
     log = logging.getLogger('ath9k_driver.main')
@@ -38,17 +57,16 @@ def main(args):
     port = args['--port']
     interfaces = args['--interface']
 
-    #START client
+    #Connect to WiSHFUL Agent
     context = zmq.Context()
     socket = context.socket(zmq.PAIR)
     socket.connect("tcp://localhost:%s" % port)
 
     try:
-        while True:
-            msg = socket.recv()
-            print "ATH9K driver recived ",msg
-            socket.send("Msg from ath9k_driver")
-            time.sleep(1)
+        gevent.joinall([
+            gevent.spawn(receiveMsg, socket),
+            gevent.spawn(processMsg, socket),
+        ])
     except KeyboardInterrupt:
         print "ath9k_driver exits"
 
