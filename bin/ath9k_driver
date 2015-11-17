@@ -51,14 +51,14 @@ def process_msg(socket):
             else:
                 msg = msg[0]
             log = logging.getLogger('ath9k_driver.main')
-            log.debug("ATH9K driver recived msg: {0}::{1}".format(msgType, msg))
+            log.debug("ATH9K driver recived msg: {0}::{1}".format(msgType,msg))
 
-            log.debug("ATH9k process msg: {0}::{1}".format(msgType, msg))
+            log.debug("ATH9k process msg: {0}".format(msg))
 
             #TODO: get msg type
             response = None
-            command = msg
-            if command == "SET_CHANNEL":
+            msgType = msg
+            if msgType == "SET_CHANNEL":
                 response = set_channel(1)
 
             if response:
