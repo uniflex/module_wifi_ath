@@ -32,28 +32,28 @@ class Ath9kDriver(object):
     def set_channel(self, channel):
         log = logging.getLogger('ath9k_driver.main')
         log.debug("ATH9K sets channel: {0}".format(channel))
+
+        group = "RESPONSE"
         msgType = "WIFI_RESPONSE"
         msg = "SET_CHANNEL_OK"
-        response = [msgType, msg]
+        response = [group, msgType, msg]
+        
         return  response
 
     def process_msgs(self, socket):
          while True:
-                msg = socket.recv_multipart()
-                msgType = ""
-                if len(msg) > 1:
-                    msgType = msg[0]
-                    msg = msg[1]
-                else:
-                    msg = msg[0]
+                msgContainer = socket.recv_multipart()
+
+                assert len(msgContainer) == 3
+                group = msgContainer[0]
+                msgType = msgContainer[1]
+                msg = msgContainer[2]
 
                 self.log.debug("ATH9K driver recived msg: {0}::{1}".format(msgType,msg))
                 self.log.debug("ATH9k process msg: {0}".format(msg))
 
-                #TODO: get msg type
                 response = None
-                msgType = msg
-                if msgType == "SET_CHANNEL":
+                if msgType == "RADIO" and msg == "SET_CHANNEL":
                     response = self.set_channel(1)
 
                 if response:
