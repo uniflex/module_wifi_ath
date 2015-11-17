@@ -35,27 +35,35 @@ __email__ = "{gawlowicz, chwalisz}@tkn.tu-berlin.de"
 def set_channel(channel):
     log = logging.getLogger('ath9k_driver.main')
     log.debug("ATH9K sets channel: {0}".format(channel))
-    msg = "!!SET_CHANNEL OK!!"
-    return  msg
+    msgType = "WIFI_RESPONSE"
+    msg = "SET_CHANNEL_OK"
+    response = [msgType, msg]
+    return  response
 
 
 def process_msg(socket):
      while True:
-            msg = socket.recv()
+            msg = socket.recv_multipart()
+            msgType = ""
+            if len(msg) > 1:
+                msgType = msg[0]
+                msg = msg[1]
+            else:
+                msg = msg[0]
             log = logging.getLogger('ath9k_driver.main')
-            log.debug("ATH9K driver recived msg: {0}".format(msg))
+            log.debug("ATH9K driver recived msg: {0}::{1}".format(msgType, msg))
 
-            log.debug("ATH9k process msg: {0}".format(msg))
+            log.debug("ATH9k process msg: {0}::{1}".format(msgType, msg))
 
             #TODO: get msg type
             response = None
-            msgType = msg
-            if msgType == "SET_CHANNEL":
+            command = msg
+            if command == "SET_CHANNEL":
                 response = set_channel(1)
 
             if response:
                 log.debug("ATH9k sends response: {0}".format(response))
-                socket.send(response)
+                socket.send_multipart(response)
 
 
 def main(args):
