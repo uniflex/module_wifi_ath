@@ -25,45 +25,12 @@ import time
 import zmq
 import random
 import sys
+import wishful_ath9k_driver
 
 __author__ = "Piotr Gawlowicz, Mikolaj Chwalisz"
 __copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
 __version__ = "0.1.0"
 __email__ = "{gawlowicz, chwalisz}@tkn.tu-berlin.de"
-
-
-def set_channel(channel):
-    log = logging.getLogger('ath9k_driver.main')
-    log.debug("ATH9K sets channel: {0}".format(channel))
-    msgType = "WIFI_RESPONSE"
-    msg = "SET_CHANNEL_OK"
-    response = [msgType, msg]
-    return  response
-
-
-def process_msg(socket):
-     while True:
-            msg = socket.recv_multipart()
-            msgType = ""
-            if len(msg) > 1:
-                msgType = msg[0]
-                msg = msg[1]
-            else:
-                msg = msg[0]
-            log = logging.getLogger('ath9k_driver.main')
-            log.debug("ATH9K driver recived msg: {0}::{1}".format(msgType,msg))
-
-            log.debug("ATH9k process msg: {0}".format(msg))
-
-            #TODO: get msg type
-            response = None
-            msgType = msg
-            if msgType == "SET_CHANNEL":
-                response = set_channel(1)
-
-            if response:
-                log.debug("ATH9k sends response: {0}".format(response))
-                socket.send_multipart(response)
 
 
 def main(args):
@@ -73,15 +40,9 @@ def main(args):
     port = args['--port']
     interfaces = args['--interface']
 
-    #Connect to WiSHFUL Agent
-    context = zmq.Context()
-    socket = context.socket(zmq.PAIR)
-    socket.connect("tcp://localhost:%s" % port)
-
-    try:
-        process_msg(socket)
-    except KeyboardInterrupt:
-        log.debug("ATH9k_driver exits")
+    driver = wishful_ath9k_driver.Ath9kDriver(agentPort=port)
+    driver.set_interfaces(interfaces)
+    driver.run()
 
 
 if __name__ == "__main__":

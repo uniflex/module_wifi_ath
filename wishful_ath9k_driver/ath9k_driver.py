@@ -1,33 +1,69 @@
+import logging
 import zmq
 import random
 import sys
 import time
-import gevent
 
-port = "5556"
+__author__ = "Piotr Gawlowicz, Mikolaj Chwalisz"
+__copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
+__version__ = "0.1.0"
+__email__ = "{gawlowicz, chwalisz}@tkn.tu-berlin.de"
 
-class Driver (object):
-    def __init__(self):
-        print "ath9k_driver"
+class Ath9kDriver(object):
+    def __init__(self, agentPort):
+        self.log = logging.getLogger("{module}.{name}".format(
+            module=self.__class__.__module__, name=self.__class__.__name__))
 
+        assert agentPort
+        self.port = agentPort
+        self.log.debug("Connect to Agent on port: {0}".format(agentPort))
 
-        pass
+        self.interfaces = None
 
-    def startSocket(self):
+        #Connect to WiSHFUL Agent
         self.context = zmq.Context()
         self.socket = self.context.socket(zmq.PAIR)
-        self.socket.connect("tcp://localhost:%s" % port)
+        self.socket.connect("tcp://localhost:%s" % agentPort)
 
-        self.waitForMsg()
+    def set_interfaces(self, interfaces):
+        self.interfaces = interfaces
 
 
-    def waitForMsg(self):
-        while True:
-            msg = self.socket.recv()
-            print msg
-            self.socket.send("client message to server1")
-            self.socket.send("client message to server2")
-            time.sleep(1)
+    def set_channel(self, channel):
+        log = logging.getLogger('ath9k_driver.main')
+        log.debug("ATH9K sets channel: {0}".format(channel))
+        msgType = "WIFI_RESPONSE"
+        msg = "SET_CHANNEL_OK"
+        response = [msgType, msg]
+        return  response
 
-    def reciveMsg(self, msg):
-        print msg
+    def process_msgs(self, socket):
+         while True:
+                msg = socket.recv_multipart()
+                msgType = ""
+                if len(msg) > 1:
+                    msgType = msg[0]
+                    msg = msg[1]
+                else:
+                    msg = msg[0]
+
+                self.log.debug("ATH9K driver recived msg: {0}::{1}".format(msgType,msg))
+                self.log.debug("ATH9k process msg: {0}".format(msg))
+
+                #TODO: get msg type
+                response = None
+                msgType = msg
+                if msgType == "SET_CHANNEL":
+                    response = self.set_channel(1)
+
+                if response:
+                    self.log.debug("ATH9k sends response: {0}".format(response))
+                    socket.send_multipart(response)
+
+
+    def run(self):
+        self.log.debug("ath9k_driver starts".format())
+        try:
+            self.process_msgs(self.socket)
+        except KeyboardInterrupt:
+            self.log.debug("ATH9k_driver exits")
