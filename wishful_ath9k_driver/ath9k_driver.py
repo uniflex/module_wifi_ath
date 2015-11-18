@@ -49,8 +49,8 @@ class Ath9kDriver(object):
                 msgType = msgContainer[1]
                 msg = msgContainer[2]
 
-                self.log.debug("ATH9K driver recived msg: {0}::{1}".format(msgType,msg))
-                self.log.debug("ATH9k process msg: {0}".format(msg))
+                self.log.debug("ATH9K driver recived msg: {0}::{1}::{2}".format(group, msgType, msg))
+                self.log.debug("ATH9k process msg: {0}::{1}::{2}".format(group, msgType, msg))
 
                 response = None
                 if msgType == "RADIO" and msg == "SET_CHANNEL":
