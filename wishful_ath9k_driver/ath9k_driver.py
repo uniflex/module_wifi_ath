@@ -30,11 +30,11 @@ class Ath9kDriver(object):
 
 
     def set_channel(self, channel):
-        log = logging.getLogger('ath9k_driver.main')
-        log.debug("ATH9K sets channel: {0}".format(channel))
+        self.log = logging.getLogger('ath9k_driver.main')
+        self.log.debug("ATH9K sets channel: {0}".format(channel))
 
         group = "RESPONSE"
-        msgType = "WIFI_RESPONSE"
+        msgType = "RESPONSE"
         msg = "SET_CHANNEL_OK"
         response = [group, msgType, msg]
         
