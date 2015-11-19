@@ -3,6 +3,8 @@ import zmq
 import random
 import sys
 import time
+import wishful_upis.msgs.management_pb2 as msgMgmt
+from wishful_upis.msgs.msg_helper import get_msg_type
 
 __author__ = "Piotr Gawlowicz, Mikolaj Chwalisz"
 __copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
@@ -34,9 +36,10 @@ class Ath9kDriver(object):
         self.log.debug("ATH9K sets channel: {0}".format(channel))
 
         group = "RESPONSE"
-        msgType = "RESPONSE"
+        msgDesc = msgMgmt.MsgDesc()
+        msgDesc.msg_type = "ATH9K_RESPONSE"
         msg = "SET_CHANNEL_OK"
-        response = [group, msgType, msg]
+        response = [group, msgDesc.SerializeToString(), msg]
         
         return  response
 
@@ -46,14 +49,16 @@ class Ath9kDriver(object):
 
                 assert len(msgContainer) == 3
                 group = msgContainer[0]
-                msgType = msgContainer[1]
+                msgDesc = msgMgmt.MsgDesc()
+                msgDesc.ParseFromString(msgContainer[1])
                 msg = msgContainer[2]
 
-                self.log.debug("ATH9K driver recived msg: {0}::{1}::{2}".format(group, msgType, msg))
-                self.log.debug("ATH9k process msg: {0}::{1}::{2}".format(group, msgType, msg))
+                self.log.debug("ATH9K driver recived msg: {0}::{1}::{2}".format(group, msgDesc.msg_type, msg))
+                self.log.debug("ATH9k process msg: {0}::{1}::{2}".format(group, msgDesc.msg_type, msg))
 
                 response = None
-                if msgType == "RADIO" and msg == "SET_CHANNEL":
+                command = msg
+                if msgDesc.msg_type == "RADIO" and command == "SET_CHANNEL":
                     response = self.set_channel(1)
 
                 if response:
