@@ -17,6 +17,7 @@ __email__ = "{gawlowicz, chwalisz}@tkn.tu-berlin.de"
 class Ath9kDriver(wishful_module.WishfulModule):
     def __init__(self, agentPort=None):
         super(Ath9kDriver, self).__init__(agentPort)
+        self.log = logging.getLogger('ath9k_driver.main')
         self.interfaces = None
 
     def set_interfaces(self, interfaces):
@@ -25,13 +26,6 @@ class Ath9kDriver(wishful_module.WishfulModule):
 
     @wishful_module.add_msg_callback('SET_CHANNEL')
     def set_channel(self, channel):
-        self.log = logging.getLogger('ath9k_driver.main')
         self.log.debug("ATH9K sets channel: {0}".format(channel))
 
-        group = "RESPONSE"
-        msgDesc = msgMgmt.MsgDesc()
-        msgDesc.msg_type = "ATH9K_RESPONSE"
-        msg = "SET_CHANNEL_OK"
-        response = [group, msgDesc.SerializeToString(), msg]
-
-        return response
+        return "SET_CHANNEL_OK"
