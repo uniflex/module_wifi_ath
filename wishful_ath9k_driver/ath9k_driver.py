@@ -24,8 +24,8 @@ class Ath9kDriver(wishful_module.WishfulModule):
         self.interfaces = interfaces
         pass
 
-    @wishful_module.add_msg_callback('SET_CHANNEL')
-    def set_channel(self, channel):
+    @wishful_module.add_msg_callback('set_channel')
+    def set_channel_test(self, channel):
         self.log.debug("ATH9K sets channel: {0}".format(channel))
 
         return "SET_CHANNEL_OK"
