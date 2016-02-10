@@ -3,8 +3,6 @@ import zmq
 import random
 import sys
 import time
-import wishful_upis.msgs.management_pb2 as msgMgmt
-from wishful_upis.msgs.msg_helper import get_msg_type
 import wishful_module
 
 __author__ = "Piotr Gawlowicz, Mikolaj Chwalisz"
