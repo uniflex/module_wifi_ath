@@ -16,14 +16,10 @@ class Ath9kDriver(wishful_module.WishfulModule):
     def __init__(self, agentPort=None):
         super(Ath9kDriver, self).__init__(agentPort)
         self.log = logging.getLogger('ath9k_driver.main')
-        self.interfaces = None
-
-    def set_interfaces(self, interfaces):
-        self.interfaces = interfaces
-        pass
+        self.interface = "wlan0"
 
     @wishful_module.add_msg_callback('set_channel')
     def set_channel_test(self, channel):
-        self.log.debug("ATH9K sets channel: {0}".format(channel))
+        self.log.debug("ATH9K sets channel: {} on interface: {}".format(channel, self.interface))
 
         return "SET_CHANNEL_OK"
