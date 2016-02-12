@@ -16,8 +16,23 @@ class Ath9kDriver(wishful_module.WishfulModule):
         self.log = logging.getLogger('ath9k_module.main')
         self.interface = "wlan0"
 
+
     @wishful_module.bind_function(upis.radio.set_channel)
     def set_channel(self, channel):
         self.log.debug("ATH9K sets channel: {} on interface: {}".format(channel, self.interface))
 
         return "SET_CHANNEL_OK"
+
+
+    @wishful_module.bind_function(upis.radio.get_channel)
+    def get_channel(self, mockup):
+        self.log.debug("Gets channel of interface: {}".format(self.interface))
+
+        return "Channel:3"
+
+
+    @wishful_module.bind_function(upis.radio.set_power)
+    def set_power(self, power):
+        self.log.debug("ATH9K sets power: {} on interface: {}".format(power, self.interface))
+
+        return "SET_POWER_OK"
