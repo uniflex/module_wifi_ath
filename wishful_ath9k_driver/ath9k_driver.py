@@ -24,26 +24,26 @@ class Ath9kDriver(wishful_module.WishfulModule):
     def set_channel(self, channel):
         self.log.debug("ATH9K sets channel: {} on interface: {}".format(channel, self.interface))
         self.channel = channel
-        return "SET_CHANNEL_OK"
+        return ["SET_CHANNEL_OK", channel, 0]
 
 
     @wishful_module.bind_function(upis.radio.get_channel)
     def get_channel(self):
         self.log.debug("Gets channel of interface: {}".format(self.interface))
-        return "CHANNEL_{}".format(self.channel)
+        return self.channel
 
 
     @wishful_module.bind_function(upis.radio.set_power)
     def set_power(self, power):
         self.log.debug("ATH9K sets power: {} on interface: {}".format(power, self.interface))
         self.power = power
-        return "SET_POWER_OK_value_{}".format(power)
+        return {"SET_POWER_OK_value" : power}
 
 
     @wishful_module.bind_function(upis.radio.get_power)
     def get_power(self):
         self.log.debug("ATH9K gets power on interface: {}".format(self.interface))
-        return "POWER_{}".format(self.power)
+        return self.power
 
 
     @wishful_module.bind_function(upis.radio.setEdcaParameters)
@@ -56,5 +56,5 @@ class Ath9kDriver(wishful_module.WishfulModule):
         print "CwMax: {}".format(queueParams.getCwMax())
         print "TxOp: {}".format(queueParams.getTxOp())
 
-        return "EDCA_OK"
+        return 0
 
