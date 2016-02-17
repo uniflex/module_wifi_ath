@@ -1,7 +1,9 @@
 import logging
+import random
 import wishful_module
 import wishful_upis as upis
 import edca #<----!!!!! Important to include it here; otherwise cannot be pickled!!!!
+
 
 
 __author__ = "Piotr Gawlowicz, Mikolaj Chwalisz"
@@ -58,3 +60,32 @@ class Ath9kDriver(wishful_module.WishfulModule):
 
         return 0
 
+
+    @wishful_module.bind_function(upis.radio.get_rssi)
+    def get_rssi(self):
+        self.log.debug("Get RSSI".format())
+        return random.randint(-120, 30)
+
+
+    @wishful_module.bind_function(upis.radio.get_noise)
+    def get_noise(self):
+        self.log.debug("Get Noise".format())
+        return random.randint(-120, -30)
+
+
+    @wishful_module.bind_function(upis.radio.get_csi)
+    def get_csi(self):
+        self.log.debug("Get CSI".format())
+        return 0
+
+
+    @wishful_module.bind_function(upis.radio.get_airtime_utilzation)
+    def get_airtime_utilzation(self):
+        self.log.debug("Get Airtime Utilization".format())
+        return random.random()
+
+
+    @wishful_module.bind_function(upis.radio.inject_frame)
+    def inject_frame(self, frame):
+        self.log.debug("Inject frame".format())
+        return 0
