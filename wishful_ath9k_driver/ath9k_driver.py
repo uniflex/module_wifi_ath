@@ -1,6 +1,7 @@
 import logging
 import random
 import wishful_module
+import wishful_module_wifi
 import wishful_upis as upis
 import edca #<----!!!!! Important to include it here; otherwise cannot be pickled!!!!
 
@@ -13,27 +14,14 @@ __email__ = "{gawlowicz, chwalisz}@tkn.tu-berlin.de"
 
 
 @wishful_module.build_module
-class Ath9kDriver(wishful_module.WishfulModule):
+class Ath9kDriver(wishful_module_wifi.WifiModule):
     def __init__(self, agentPort=None):
         super(Ath9kDriver, self).__init__(agentPort)
         self.log = logging.getLogger('ath9k_module.main')
         self.interface = "wlan0"
         self.channel = 1
         self.power = 1
-
-
-    @wishful_module.bind_function(upis.radio.set_channel)
-    def set_channel(self, channel):
-        self.log.debug("ATH9K sets channel: {} on interface: {}".format(channel, self.interface))
-        self.channel = channel
-        return ["SET_CHANNEL_OK", channel, 0]
-
-
-    @wishful_module.bind_function(upis.radio.get_channel)
-    def get_channel(self):
-        self.log.debug("Gets channel of interface: {}".format(self.interface))
-        return self.channel
-
+        
 
     @wishful_module.bind_function(upis.radio.set_power)
     def set_power(self, power):
