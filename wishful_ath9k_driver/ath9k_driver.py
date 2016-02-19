@@ -89,13 +89,12 @@ class Ath9kDriver(wishful_module_wifi.WifiModule):
 
 
     @wishful_module.bind_function(upis.radio.install_mac_processor)
-    def install_mac_processor(self, myargs):
+    def install_mac_processor(self, interface, mac_profile):
 
         self.log.info('Function: installMacProcessor')
         self.log.info('margs = %s' % str(myargs))
 
-        interface = myargs["interface"]
-        hybridMac = pickle.loads(myargs["mac_profile"])
+        hybridMac = pickle.loads(mac_profile)
 
         conf_str = None
         for ii in range(hybridMac.getNumSlots()): # for each slot
@@ -128,13 +127,12 @@ class Ath9kDriver(wishful_module_wifi.WifiModule):
             raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
 
     @wishful_module.bind_function(upis.radio.update_mac_processor)
-    def update_mac_processor(self, myargs):
+    def update_mac_processor(self, interface, mac_profile):
 
         self.log.info('Function: updateMacProcessor')
         self.log.info('margs = %s' % str(myargs))
 
-        interface = myargs["interface"]
-        hybridMac = pickle.loads(myargs["mac_profile"])
+        hybridMac = pickle.loads(mac_profile)
 
         # generate configuration string
         conf_str = None
@@ -169,14 +167,12 @@ class Ath9kDriver(wishful_module_wifi.WifiModule):
             raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
 
     @wishful_module.bind_function(upis.radio.uninstall_mac_processor)
-    def uninstall_mac_processor(self, myargs):
+    def uninstall_mac_processor(self, interface, mac_profile):
         import pickle
 
         self.log.info('Function: uninstallMacProcessor')
-        self.log.info('margs = %s' % str(myargs))
 
-        interface = myargs["interface"]
-        hybridMac = pickle.loads(myargs["mac_profile"])
+        hybridMac = pickle.loads(mac_profile)
 
         # set allow all
         # generate configuration string
@@ -219,13 +215,10 @@ class Ath9kDriver(wishful_module_wifi.WifiModule):
             raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
 
     @wishful_module.bind_function(upis.radio.perform_active_spectral_scanning)
-    def perform_active_spectral_scanning(self, myargs):
+    def perform_active_spectral_scanning(self, iface, freq_list, mode):
         """
             Perform active spectral scanning
         """
-        iface = myargs["iface"]
-        freq_list = myargs["freq_list"]
-        mode = myargs["mode"]
 
         self.log.debug('performActiveSpectralScanning on iface %s for freq=%s' % (iface, freq_list))
 
