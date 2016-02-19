@@ -3,7 +3,7 @@ import random
 import wishful_upis as upis
 import wishful_agent as wishful_module
 import wishful_module_wifi
-import edca #<----!!!!! Important to include it here; otherwise cannot be pickled!!!!
+import wishful_framework.upi_arg_classes.edca as edca #<----!!!!! Important to include it here; otherwise cannot be pickled!!!!
 
 
 
