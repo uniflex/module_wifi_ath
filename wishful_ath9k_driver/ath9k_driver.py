@@ -1,8 +1,8 @@
 import logging
 import random
-import wishful_module
-import wishful_module_wifi
 import wishful_upis as upis
+import wishful_agent as wishful_module
+import wishful_module_wifi
 import edca #<----!!!!! Important to include it here; otherwise cannot be pickled!!!!
 
 
@@ -21,7 +21,6 @@ class Ath9kDriver(wishful_module_wifi.WifiModule):
         self.interface = "wlan0"
         self.channel = 1
         self.power = 1
-        
 
     @wishful_module.bind_function(upis.radio.set_power)
     def set_power(self, power):
