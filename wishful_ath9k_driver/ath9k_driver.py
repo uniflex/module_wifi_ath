@@ -70,14 +70,8 @@ class Ath9kDriver(wishful_module_wifi.WifiModule):
         return random.randint(-120, -30)
 
 
-    @wishful_module.bind_function(upis.radio.get_csi)
-    def get_csi(self):
-        self.log.debug("Get CSI".format())
-        return 0
-
-
-    @wishful_module.bind_function(upis.radio.get_airtime_utilzation)
-    def get_airtime_utilzation(self):
+    @wishful_module.bind_function(upis.radio.get_airtime_utilization)
+    def get_airtime_utilization(self):
         self.log.debug("Get Airtime Utilization".format())
         return random.random()
 
@@ -214,8 +208,8 @@ class Ath9kDriver(wishful_module_wifi.WifiModule):
             self.log.fatal("An error occurred in %s: %s" % (fname, e))
             raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
 
-    @wishful_module.bind_function(upis.radio.perform_active_spectral_scanning)
-    def perform_active_spectral_scanning(self, iface, freq_list, mode):
+    @wishful_module.bind_function(upis.radio.perform_spectral_scanning)
+    def perform_spectral_scanning(self, iface, freq_list, mode):
         """
             Perform active spectral scanning
         """
