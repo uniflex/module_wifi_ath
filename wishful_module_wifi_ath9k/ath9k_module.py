@@ -15,7 +15,7 @@ import numpy as np
 import wishful_framework.upi_arg_classes.edca as edca #<----!!!!! Important to include it here; otherwise cannot be pickled!!!!
 
 
-__author__ = "Piotr Gawlowicz, Mikolaj Chwalisz, Zubow"
+__author__ = "Piotr Gawlowicz, Mikolaj Chwalisz, Anatolij Zubow"
 __copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
 __version__ = "0.1.0"
 __email__ = "{gawlowicz, chwalisz, zubow}@tkn.tu-berlin.de"
