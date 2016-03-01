@@ -15,5 +15,5 @@ setup(
     description='WiSHFUL ATH9K Driver',
     long_description='WiSHFUL ATH9K Driver',
     keywords='wireless control',
-    install_requires=[]
+    install_requires=['netifaces','scapy','numpy']
 )
