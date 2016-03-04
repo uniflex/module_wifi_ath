@@ -26,3 +26,7 @@ class Ath5kModule(AthModule):
     def __init__(self):
         super(Ath5kModule, self).__init__()
         self.log = logging.getLogger('Ath5kModule')
+
+    @wishful_module.bind_function(upis.radio.configure_radio_sensitivity)
+    def configure_radio_sensitivity(self, phy_dev, **kwargs):
+        return super(Ath5kModule, self).configure_radio_sensitivity(phy_dev, 'ath5k', **kwargs)

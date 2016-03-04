@@ -32,19 +32,6 @@ class AthModule(wishful_module_wifi.WifiModule):
         self.channel = 1
         self.power = 1
 
-    @wishful_module.bind_function(upis.radio.set_power)
-    def set_power(self, power):
-        self.log.debug("ATH9K sets power: {} on interface: {}".format(power, self.interface))
-        self.power = power
-        return {"SET_POWER_OK_value" : power}
-
-
-    @wishful_module.bind_function(upis.radio.get_power)
-    def get_power(self):
-        self.log.debug("ATH9K gets power on interface: {}".format(self.interface))
-        return self.power
-
-
     @wishful_module.bind_function(upis.radio.set_mac_access_parameters)
     def setEdcaParameters(self, queueId, queueParams):
         self.log.debug("ATH9K sets EDCA parameters for queue: {} on interface: {}".format(queueId, self.interface))
@@ -69,138 +56,6 @@ class AthModule(wishful_module_wifi.WifiModule):
         self.log.debug("Get Airtime Utilization".format())
         return random.random()
 
-
-    @wishful_module.bind_function(upis.radio.inject_frame)
-    def inject_frame(self, frame):
-        self.log.debug("Inject frame".format())
-        return 0
-
-
-    @wishful_module.bind_function(upis.radio.install_mac_processor)
-    def install_mac_processor(self, interface, mac_profile):
-
-        self.log.info('Function: installMacProcessor')
-        self.log.info('margs = %s' % str(myargs))
-
-        hybridMac = pickle.loads(mac_profile)
-
-        conf_str = None
-        for ii in range(hybridMac.getNumSlots()): # for each slot
-            ac = hybridMac.getAccessPolicy(ii)
-            entries = ac.getEntries()
-
-            for ll in range(len(entries)):
-                entry = entries[ll]
-
-                # slot_id, mac_addr, tid_mask
-                if conf_str is None:
-                    conf_str = str(ii) + "," + str(entry[0]) + "," + str(entry[1])
-                else:
-                    conf_str = conf_str + "#" + str(ii) + "," + str(entry[0]) + "," + str(entry[1])
-
-        # set-up executable here. note: it is platform-dependent
-
-        exec_file = str(os.path.join(self.getPlatformPathHybridMAC())) + '/hybrid_tdma_csma_mac'
-
-        processArgs = str(exec_file) + " -d 0 " + " -i" +str(interface) + " -f" + str(hybridMac.getSlotDuration()) + " -n" + str(hybridMac.getNumSlots()) + " -c" + conf_str
-        self.log.info('Calling hybrid mac executable w/ = %s' % str(processArgs))
-
-        try:
-            # run as background process
-            subprocess.Popen(processArgs.split(), shell=False)
-            return True
-        except Exception as e:
-            fname = inspect.currentframe().f_code.co_name
-            self.log.fatal("An error occurred in %s: %s" % (fname, e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
-
-    @wishful_module.bind_function(upis.radio.update_mac_processor)
-    def update_mac_processor(self, interface, mac_profile):
-
-        self.log.info('Function: updateMacProcessor')
-        self.log.info('margs = %s' % str(myargs))
-
-        hybridMac = pickle.loads(mac_profile)
-
-        # generate configuration string
-        conf_str = None
-        for ii in range(hybridMac.getNumSlots()): # for each slot
-            ac = hybridMac.getAccessPolicy(ii)
-            entries = ac.getEntries()
-
-            for ll in range(len(entries)):
-                entry = entries[ll]
-
-                # slot_id, mac_addr, tid_mask
-                if conf_str is None:
-                    conf_str = str(ii) + "," + str(entry[0]) + "," + str(entry[1])
-                else:
-                    conf_str = conf_str + "#" + str(ii) + "," + str(entry[0]) + "," + str(entry[1])
-
-        #  update MAC processor configuration
-        try:
-            # todo cache sockets!!!
-            context = zmq.Context()
-            socket = context.socket(zmq.REQ)
-            socket.connect("tcp://localhost:" + str(LOCAL_MAC_PROCESSOR_CTRL_PORT))
-            #socket.connect("ipc:///tmp/localmacprocessor")
-
-            socket.send(conf_str)
-            message = socket.recv()
-            self.log.info("Received reply from HMAC: %s" % message)
-            return True
-        except zmq.ZMQError as e:
-            fname = inspect.currentframe().f_code.co_name
-            self.log.fatal("An error occurred in %s: %s" % (fname, e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
-
-    @wishful_module.bind_function(upis.radio.uninstall_mac_processor)
-    def uninstall_mac_processor(self, interface, mac_profile):
-        import pickle
-
-        self.log.info('Function: uninstallMacProcessor')
-
-        hybridMac = pickle.loads(mac_profile)
-
-        # set allow all
-        # generate configuration string
-        conf_str = None
-        for ii in range(hybridMac.getNumSlots()): # for each slot
-            # slot_id, mac_addr, tid_mask
-            if conf_str is None:
-                conf_str = str(ii) + "," + 'FF:FF:FF:FF:FF:FF' + "," + str(255)
-            else:
-                conf_str = conf_str + "#" + str(ii) + "," + 'FF:FF:FF:FF:FF:FF' + "," + str(255)
-
-        # command string
-        terminate_str = 'TERMINATE'
-
-        #  update MAC processor configuration
-        try:
-            # todo cache sockets!!!
-            context = zmq.Context()
-            socket = context.socket(zmq.REQ)
-            socket.connect("tcp://localhost:" + str(LOCAL_MAC_PROCESSOR_CTRL_PORT))
-            #socket.connect("ipc:///tmp/localmacprocessor")
-
-            # (1) set new config
-            socket.send(conf_str)
-            message = socket.recv()
-            self.log.info("Received reply from HMAC: %s" % message)
-
-            # give one second to settle down
-            time.sleep(1)
-
-            # (2) terminate MAC
-            socket.send(terminate_str)
-            message = socket.recv()
-            self.log.info("Received reply from HMAC: %s" % message)
-
-            return True
-        except zmq.ZMQError as e:
-            fname = inspect.currentframe().f_code.co_name
-            self.log.fatal("An error occurred in %s: %s" % (fname, e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
 
     @wishful_module.bind_function(upis.radio.perform_spectral_scanning)
     def perform_spectral_scanning(self, iface, freq_list, mode):
@@ -274,19 +129,68 @@ class AthModule(wishful_module_wifi.WifiModule):
             self.log.fatal("An error occurred in Dot80211Linux: %s" % e)
             raise Exception("An error occurred in Dot80211Linux: %s" % e)
 
+
+    def configure_radio_sensitivity(self, phy_dev, prefix, **kwargs):
+        '''
+            Configuring the carrier receiving sensitivity of the radio.
+            Req.: modprobe ath5k/9k debug=0xffffffff
+
+            #configuration of ath5k's ANI settings
+            echo "ani-off" > /sys/kernel/debug/ieee80211/phy0/ath5k/ani
+
+            supported ani modes:
+            - sens-low
+            - sens-high
+            - ani-off
+            - ani-on
+            - noise-low
+            - noise-high
+            - spur-low
+            - spur-high
+            - fir-low
+            - fir-high
+            - ofdm-off
+            - ofdm-on
+            - cck-off
+            - cck-on
+
+            Documentation from Linux Kernel:
+
+            Adaptive Noise Immunity (ANI) controls five noise immunity parameters
+            depending on the amount of interference in the environment, increasing
+            or reducing sensitivity as necessary.
+
+            The parameters are:
+
+            - "noise immunity"
+            - "spur immunity"
+            - "firstep level"
+            - "OFDM weak signal detection"
+            - "CCK weak signal detection"
+
+            Basically we look at the amount of ODFM and CCK timing errors we get and then
+            raise or lower immunity accordingly by setting one or more of these
+            parameters.
+        '''
+
+        ani_mode = kwargs.get('ani_mode')
+
+        exec_file = 'echo "' + ani_mode + '" > /sys/kernel/debug/ieee80211/' + phy_dev + '/' + prefix + '/ani'
+
+        self.log.info('Setting ANI sensitivity w/ = %s' % str(exec_file))
+
+        try:
+            # run as background process
+            subprocess.Popen(exec_file.split(), shell=True)
+            return True
+        except Exception as e:
+            fname = inspect.currentframe().f_code.co_name
+            self.log.fatal("An error occurred in %s: %s" % (fname, e))
+            raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
+
     #################################################
     # Helper functions
     #################################################
-
-    def get_platform_path_hybrid_MAC(self):
-        '''
-        Path to platform dependent (native) binaries: here hybrid MAC
-        '''
-        PLATFORM_PATH = os.path.join(".", "runtime", "connectors", "dot80211_linux", "hybridmac", "bin")
-        pl = platform.architecture()
-        sys = platform.system()
-        machine = platform.machine()
-        return os.path.join(PLATFORM_PATH, sys, pl[0], machine)
 
     def getPlatformPathSpectralScan(self):
         """
