@@ -45,7 +45,7 @@ class Ath9kModule(wishful_module_wifi.WifiModule):
         return self.power
 
 
-    @wishful_module.bind_function(upis.radio.set_edca_parameters)
+    @wishful_module.bind_function(upis.radio.set_mac_access_parameters)
     def setEdcaParameters(self, queueId, queueParams):
         self.log.debug("ATH9K sets EDCA parameters for queue: {} on interface: {}".format(queueId, self.interface))
 
