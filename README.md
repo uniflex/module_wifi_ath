@@ -1,4 +1,4 @@
-WiSHFUL ATH9K Driver
+WiSHFUL ATH Modules
 ============================
 
 This is a prototypic implementation of a wireless agent providing the Unified

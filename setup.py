@@ -12,8 +12,8 @@ setup(
     license='',
     author='Piotr Gawlowicz',
     author_email='gawlowicz@tu-berlin.de',
-    description='WiSHFUL ATH Drivers',
-    long_description='WiSHFUL ATH Drivers',
+    description='WiSHFUL ATH Modules',
+    long_description='WiSHFUL ATH Modules',
     keywords='wireless control',
     install_requires=['netifaces','scapy','numpy']
 )
