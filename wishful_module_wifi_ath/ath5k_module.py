@@ -13,7 +13,7 @@ import time
 import platform
 import numpy as np
 import wishful_framework.upi_arg_classes.edca as edca #<----!!!!! Important to include it here; otherwise cannot be pickled!!!!
-from atk_module import AthModule
+from ath_module import AthModule
 
 __author__ = "Piotr Gawlowicz, Mikolaj Chwalisz, Anatolij Zubow"
 __copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
