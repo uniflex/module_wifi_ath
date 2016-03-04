@@ -58,12 +58,6 @@ class Ath9kModule(wishful_module_wifi.WifiModule):
         return 0
 
 
-    @wishful_module.bind_function(upis.radio.get_rssi)
-    def get_rssi(self):
-        self.log.debug("Get RSSI".format())
-        return random.randint(-120, 30)
-
-
     @wishful_module.bind_function(upis.radio.get_noise)
     def get_noise(self):
         self.log.debug("Get Noise".format())
