@@ -174,19 +174,18 @@ class AthModule(wishful_module_wifi.WifiModule):
         '''
 
         ani_mode = kwargs.get('ani_mode')
-
-        exec_file = 'echo "' + ani_mode + '" > /sys/kernel/debug/ieee80211/' + phy_dev + '/' + prefix + '/ani'
-
-        self.log.info('Setting ANI sensitivity w/ = %s' % str(exec_file))
+        self.log.info('Setting ANI sensitivity w/ = %s' % str(ani_mode))
 
         try:
-            # run as background process
-            subprocess.Popen(exec_file.split(), shell=True)
-            return True
+            myfile = open('/sys/kernel/debug/ieee80211/' + phy_dev + '/' + prefix + '/ani', 'w')
+            myfile.write(ani_mode)
+            myfile.close()
         except Exception as e:
             fname = inspect.currentframe().f_code.co_name
             self.log.fatal("An error occurred in %s: %s" % (fname, e))
             raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
+        
+        return True
 
     #################################################
     # Helper functions
