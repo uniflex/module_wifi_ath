@@ -24,10 +24,10 @@ __email__ = "{gawlowicz, chwalisz, zubow}@tkn.tu-berlin.de"
 LOCAL_MAC_PROCESSOR_CTRL_PORT = 1217
 
 @wishful_module.build_module
-class Ath9kModule(wishful_module_wifi.WifiModule):
+class AthModule(wishful_module_wifi.WifiModule):
     def __init__(self):
-        super(Ath9kModule, self).__init__()
-        self.log = logging.getLogger('ath9k_module.main')
+        super(AthModule, self).__init__()
+        self.log = logging.getLogger('AthModule')
         self.interface = "wlan0"
         self.channel = 1
         self.power = 1
