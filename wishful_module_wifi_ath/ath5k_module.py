@@ -1,7 +1,7 @@
 import logging
 import random
 import wishful_upis as upis
-import wishful_agent as wishful_module
+import wishful_framework as wishful_module
 import wishful_module_wifi
 import pickle
 import os
