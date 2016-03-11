@@ -13,6 +13,7 @@ import time
 import platform
 import numpy as np
 import wishful_framework.upi_arg_classes.edca as edca #<----!!!!! Important to include it here; otherwise cannot be pickled!!!!
+import wishful_framework.upi_arg_classes.hmac as hmac
 from ath_module import AthModule
 
 __author__ = "Piotr Gawlowicz, Anatolij Zubow"
@@ -34,12 +35,12 @@ class Ath9kModule(AthModule):
         #return super(Ath9kModule, self).configure_radio_sensitivity(phy_dev, 'ath9k', **kwargs)
 
     @wishful_module.bind_function(upis.radio.install_mac_processor)
-    def install_mac_processor(self, interface, mac_profile):
+    def install_mac_processor(self, interface, hybridMac):
 
         self.log.info('Function: installMacProcessor')
-        self.log.info('margs = %s' % str(myargs))
+        #self.log.info('margs = %s' % str(myargs))
 
-        hybridMac = pickle.loads(mac_profile)
+       # hybridMac = pickle.loads(mac_profile)
 
         conf_str = None
         for ii in range(hybridMac.getNumSlots()): # for each slot
@@ -57,7 +58,7 @@ class Ath9kModule(AthModule):
 
         # set-up executable here. note: it is platform-dependent
 
-        exec_file = str(os.path.join(self.getPlatformPathHybridMAC())) + '/hybrid_tdma_csma_mac'
+        exec_file = str(os.path.join(self.get_platform_path_hybrid_MAC())) + '/hybrid_tdma_csma_mac'
 
         processArgs = str(exec_file) + " -d 0 " + " -i" +str(interface) + " -f" + str(hybridMac.getSlotDuration()) + " -n" + str(hybridMac.getNumSlots()) + " -c" + conf_str
         self.log.info('Calling hybrid mac executable w/ = %s' % str(processArgs))
@@ -72,12 +73,12 @@ class Ath9kModule(AthModule):
             raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
 
     @wishful_module.bind_function(upis.radio.update_mac_processor)
-    def update_mac_processor(self, interface, mac_profile):
+    def update_mac_processor(self, interface, hybridMac):
 
         self.log.info('Function: updateMacProcessor')
         self.log.info('margs = %s' % str(myargs))
 
-        hybridMac = pickle.loads(mac_profile)
+        #hybridMac = pickle.loads(mac_profile)
 
         # generate configuration string
         conf_str = None
@@ -112,12 +113,11 @@ class Ath9kModule(AthModule):
             raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
 
     @wishful_module.bind_function(upis.radio.uninstall_mac_processor)
-    def uninstall_mac_processor(self, interface, mac_profile):
-        import pickle
+    def uninstall_mac_processor(self, interface, hybridMac):
 
         self.log.info('Function: uninstallMacProcessor')
 
-        hybridMac = pickle.loads(mac_profile)
+        #hybridMac = pickle.loads(mac_profile)
 
         # set allow all
         # generate configuration string
@@ -137,7 +137,7 @@ class Ath9kModule(AthModule):
             # todo cache sockets!!!
             context = zmq.Context()
             socket = context.socket(zmq.REQ)
-            socket.connect("tcp://localhost:" + str(LOCAL_MAC_PROCESSOR_CTRL_PORT))
+            socket.connect("tcp://localhost:" + str("1217"))
             #socket.connect("ipc:///tmp/localmacprocessor")
 
             # (1) set new config
@@ -147,6 +147,7 @@ class Ath9kModule(AthModule):
 
             # give one second to settle down
             time.sleep(1)
+
 
             # (2) terminate MAC
             socket.send(terminate_str)
@@ -167,8 +168,9 @@ class Ath9kModule(AthModule):
         '''
         Path to platform dependent (native) binaries: here hybrid MAC
         '''
-        PLATFORM_PATH = os.path.join(".", "runtime", "connectors", "dot80211_linux", "hybridmac", "bin")
+        PLATFORM_PATH = os.path.join(".", "agent_modules", "wifi_ath", "hmac", "bin")
         pl = platform.architecture()
         sys = platform.system()
         machine = platform.machine()
-        return os.path.join(PLATFORM_PATH, sys, pl[0], machine)
+        #return os.path.join(PLATFORM_PATH, sys, pl[0], machine)
+        return PLATFORM_PATH
