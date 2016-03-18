@@ -36,11 +36,11 @@ class AthModule(wishful_module_wifi.WifiModule):
     def setEdcaParameters(self, queueId, queueParams):
         self.log.debug("ATH9K sets EDCA parameters for queue: {} on interface: {}".format(queueId, self.interface))
 
-        print "Setting EDCA parameters for queue: {}".format(queueId)
-        print "AIFS: {}".format(queueParams.getAifs())
-        print "CwMin: {}".format(queueParams.getCwMin())
-        print "CwMax: {}".format(queueParams.getCwMax())
-        print "TxOp: {}".format(queueParams.getTxOp())
+        print("Setting EDCA parameters for queue: {}".format(queueId))
+        print("AIFS: {}".format(queueParams.getAifs()))
+        print("CwMin: {}".format(queueParams.getCwMin()))
+        print("CwMax: {}".format(queueParams.getCwMax()))
+        print("TxOp: {}".format(queueParams.getTxOp()))
 
         return 0
 
