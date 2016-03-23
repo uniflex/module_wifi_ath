@@ -175,7 +175,7 @@ class AthModule(wishful_module_wifi.WifiModule):
 
 
     @wishful_module.bind_function(upis.radio.get_per_flow_tx_power_table)
-    def get_per_flow_tx_power_table(self, myargs):
+    def get_per_flow_tx_power_table(self):
         self.log.debug('get_per_flow_tx_power_table on iface: {}'.format(self.interface))
 
         cmd_str = ('sudo iw ' + self.interface + ' info')
