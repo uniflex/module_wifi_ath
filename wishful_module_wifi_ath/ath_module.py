@@ -1,18 +1,22 @@
 import logging
 import random
-import wishful_upis as upis
-import wishful_framework as wishful_module
-import wishful_module_wifi
 import pickle
 import os
-from wishful_framework.classes import exceptions
 import inspect
 import subprocess
 import zmq
 import time
 import platform
 import numpy as np
+import iptc
+from pytc.TrafficControl import TrafficControl
+
+import wishful_module_wifi
+import wishful_upis as upis
+import wishful_framework as wishful_module
+from wishful_framework.classes import exceptions
 import wishful_framework.upi_arg_classes.edca as edca #<----!!!!! Important to include it here; otherwise cannot be pickled!!!!
+import wishful_framework.upi_arg_classes.flow_id as FlowId
 
 
 __author__ = "Piotr Gawlowicz, Mikolaj Chwalisz, Anatolij Zubow"
@@ -28,21 +32,169 @@ class AthModule(wishful_module_wifi.WifiModule):
     def __init__(self):
         super(AthModule, self).__init__()
         self.log = logging.getLogger('AthModule')
-        self.interface = "wlan0"
         self.channel = 1
         self.power = 1
+
 
     @wishful_module.bind_function(upis.radio.set_mac_access_parameters)
     def setEdcaParameters(self, queueId, queueParams):
         self.log.debug("ATH9K sets EDCA parameters for queue: {} on interface: {}".format(queueId, self.interface))
 
-        print("Setting EDCA parameters for queue: {}".format(queueId))
-        print("AIFS: {}".format(queueParams.getAifs()))
-        print("CwMin: {}".format(queueParams.getCwMin()))
-        print("CwMax: {}".format(queueParams.getCwMax()))
-        print("TxOp: {}".format(queueParams.getTxOp()))
+        self.log.debug("AIFS: {}".format(queueParams.getAifs()))
+        self.log.debug("CwMin: {}".format(queueParams.getCwMin()))
+        self.log.debug("CwMax: {}".format(queueParams.getCwMax()))
+        self.log.debug("TxOp: {}".format(queueParams.getTxOp()))
 
-        return 0
+        cmd_str = ('sudo iw ' + self.interface + ' info')
+        cmd_output = subprocess.check_output(cmd_str, shell=True, stderr=subprocess.STDOUT)
+
+        for item in cmd_output.split("\n"):
+             if "wiphy" in item:
+                line = item.strip()
+
+        phyId = [int(s) for s in line.split() if s.isdigit()][0]
+
+        try:
+            myfile = open('/sys/kernel/debug/ieee80211/phy'+str(phyId)+'/ath9k/txq_params', 'w')
+            value = str(queueId) + " " + str(queueParams.getAifs()) + " " + str(queueParams.getCwMin()) + " " + str(queueParams.getCwMax()) + " " + str(queueParams.getTxOp())
+            myfile.write(value)
+            myfile.close()
+            return "OK"
+        except Exception as e:
+            self.log.fatal("Operation not supported: %s" % e)
+            raise exceptions.UPIFunctionExecutionFailedException(func_name='radio.set_mac_access_parameters', err_msg='cannot open file')
+
+
+
+    @wishful_module.bind_function(upis.radio.get_mac_access_parameters)
+    def getEdcaParameters(self):
+        self.log.debug("ATH9K gets EDCA parameters for interface: {}".format(self.interface))
+
+        cmd_str = ('sudo iw ' + self.interface + ' info')
+        cmd_output = subprocess.check_output(cmd_str, shell=True, stderr=subprocess.STDOUT)
+
+        for item in cmd_output.split("\n"):
+             if "wiphy" in item:
+                line = item.strip()
+
+        phyId = [int(s) for s in line.split() if s.isdigit()][0]
+
+        try:
+            myfile = open('/sys/kernel/debug/ieee80211/phy'+str(phyId)+'/ath9k/txq_params', 'r')
+            data = myfile.read()
+            myfile.close()
+            return data
+        except Exception as e:
+            self.log.fatal("Operation not supported: %s" % e)
+            raise exceptions.UPIFunctionExecutionFailedException(func_name='radio.get_mac_access_parameters', err_msg='cannot open file')
+
+
+    @wishful_module.bind_function(upis.radio.set_per_flow_tx_power)
+    def set_per_flow_tx_power(self, flowId, txPower):
+        self.log.debug('set_per_flow_tx_power on iface: {}'.format(self.interface))
+
+        tcMgr = TrafficControl()
+        markId = tcMgr.generateMark()
+        self.setMarking(flowId, table="mangle", chain="POSTROUTING", markId=markId)
+
+        cmd_str = ('sudo iw ' + self.interface + ' info')
+        cmd_output = subprocess.check_output(cmd_str, shell=True, stderr=subprocess.STDOUT)
+
+        for item in cmd_output.split("\n"):
+             if "wiphy" in item:
+                line = item.strip()
+
+        phyId = [int(s) for s in line.split() if s.isdigit()][0]
+
+        try:
+            myfile = open('/sys/kernel/debug/ieee80211/phy'+str(phyId)+'/ath9k/per_flow_tx_power', 'w')
+            value = str(markId) + " " + str(txPower) + " 0"
+            myfile.write(value)
+            myfile.close()
+            return "OK"
+        except Exception as e:
+            self.log.fatal("Operation not supported: %s" % e)
+            raise exceptions.UPIFunctionExecutionFailedException(func_name='radio.set_per_flow_tx_power', err_msg='cannot open file')
+
+
+    def setMarking(self, flowId, table="mangle", chain="POSTROUTING", markId=None):
+        
+        if not markId:
+            tcMgr = TrafficControl()
+            markId = tcMgr.generateMark()
+
+        rule = iptc.Rule()
+
+        if flowId.srcAddress:
+            rule.src = flowId.srcAddress
+
+        if flowId.dstAddress:
+            rule.dst = flowId.dstAddress
+
+        if flowId.prot:
+            rule.protocol = flowId.prot
+            match = iptc.Match(rule, flowId.prot)
+
+            if flowId.srcPort:
+                match.sport = flowId.srcPort
+
+            if flowId.dstPort:
+                match.dport = flowId.dstPort
+
+            rule.add_match(match)
+
+        target = iptc.Target(rule, "MARK")
+        target.set_mark = str(markId)
+        rule.target = target
+        chain = iptc.Chain(iptc.Table(table), chain)
+        chain.insert_rule(rule)
+
+
+    @wishful_module.bind_function(upis.radio.clean_per_flow_tx_power_table)
+    def clean_per_flow_tx_power_table(self):
+        self.log.debug('clean_per_flow_tx_power_table on iface: {}'.format(self.interface))
+
+        cmd_str = ('sudo iw ' + self.interface + ' info')
+        cmd_output = subprocess.check_output(cmd_str, shell=True, stderr=subprocess.STDOUT)
+
+        for item in cmd_output.split("\n"):
+             if "wiphy" in item:
+                line = item.strip()
+
+        phyId = [int(s) for s in line.split() if s.isdigit()][0]
+
+        try:
+            myfile = open('/sys/kernel/debug/ieee80211/phy'+str(phyId)+'/ath9k/per_flow_tx_power', 'w')
+            value = "0 0 0"
+            myfile.write(value)
+            myfile.close()
+            return "OK"
+        except Exception as e:
+            self.log.fatal("Operation not supported: %s" % e)
+            raise exceptions.UPIFunctionExecutionFailedException(func_name='radio.clean_per_flow_tx_power_table', err_msg='cannot open file')
+
+
+    @wishful_module.bind_function(upis.radio.get_per_flow_tx_power_table)
+    def get_per_flow_tx_power_table(self, myargs):
+        self.log.debug('get_per_flow_tx_power_table on iface: {}'.format(self.interface))
+
+        cmd_str = ('sudo iw ' + self.interface + ' info')
+        cmd_output = subprocess.check_output(cmd_str, shell=True, stderr=subprocess.STDOUT)
+
+        for item in cmd_output.split("\n"):
+             if "wiphy" in item:
+                line = item.strip()
+
+        phyId = [int(s) for s in line.split() if s.isdigit()][0]
+
+        try:
+            myfile = open('/sys/kernel/debug/ieee80211/phy'+str(phyId)+'/ath9k/per_flow_tx_power', 'r')
+            data = myfile.read()
+            myfile.close()
+            return data
+        except Exception as e:
+            self.log.fatal("Operation not supported: %s" % e)
+            raise exceptions.UPIFunctionExecutionFailedException(func_name='radio.get_per_flow_tx_power_table', err_msg='cannot open file')
 
 
     @wishful_module.bind_function(upis.radio.get_noise)
