@@ -15,5 +15,5 @@ setup(
     description='WiSHFUL ATH Modules',
     long_description='WiSHFUL ATH Modules',
     keywords='wireless control',
-    install_requires=['netifaces','scapy-python3','numpy']
+    install_requires=['netifaces','scapy-python3','numpy', 'python-iptables', 'pyroute2']
 )
