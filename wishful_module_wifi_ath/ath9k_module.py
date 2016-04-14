@@ -160,6 +160,37 @@ class Ath9kModule(AthModule):
             self.log.fatal("An error occurred in %s: %s" % (fname, e))
             raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
 
+
+    @wishful_module.bind_function(upis.radio.configure_radio_sensitivity)
+    def configure_radio_sensitivity(self, phy_dev, **kwargs):
+
+        '''
+            Configuring the carrier receiving sensitivity of the radio.
+            Req.: modprobe ath5k/9k debug=0xffffffff
+
+            #configuration of ath5k's ANI settings
+            # disable ani
+            echo "0" > /sys/kernel/debug/ieee80211/phy0/ath9k/ani
+
+            supported ani modes:
+            - 0 - disable ANI
+            - tbd
+        '''
+        prefix = 'ath9k'
+        ani_mode = kwargs.get('ani_mode')
+        self.log.info('Setting ANI sensitivity w/ = %s' % str(ani_mode))
+
+        try:
+            myfile = open('/sys/kernel/debug/ieee80211/' + phy_dev + '/' + prefix + '/ani', 'w')
+            myfile.write(ani_mode)
+            myfile.close()
+        except Exception as e:
+            fname = inspect.currentframe().f_code.co_name
+            self.log.fatal("An error occurred in %s: %s" % (fname, e))
+            raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
+
+        return True
+
     #################################################
     # Helper functions
     #################################################
