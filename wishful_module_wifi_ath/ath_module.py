@@ -38,7 +38,7 @@ class AthModule(wishful_module_wifi.WifiModule):
 
     @wishful_module.bind_function(upis.radio.set_mac_access_parameters)
     def setEdcaParameters(self, queueId, queueParams):
-        self.log.debug("ATH9K sets EDCA parameters for queue: {} on interface: {}".format(queueId, self.interface))
+        self.log.info("ATH9K sets EDCA parameters for queue: {} on interface: {}".format(queueId, self.interface))
 
         self.log.debug("AIFS: {}".format(queueParams.getAifs()))
         self.log.debug("CwMin: {}".format(queueParams.getCwMin()))
@@ -47,7 +47,7 @@ class AthModule(wishful_module_wifi.WifiModule):
 
         cmd_str = ('sudo iw ' + self.interface + ' info')
         cmd_output = subprocess.check_output(cmd_str, shell=True, stderr=subprocess.STDOUT)
-
+        cmd_output = cmd_output.decode("utf-8")
         for item in cmd_output.split("\n"):
              if "wiphy" in item:
                 line = item.strip()
