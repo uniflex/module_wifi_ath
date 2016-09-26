@@ -1,24 +1,23 @@
 import logging
 import random
-import wishful_upis as upis
-import wishful_framework as wishful_module
-import wishful_module_wifi
 import pickle
 import os
-from wishful_framework.classes import exceptions
 import inspect
 import subprocess
 import zmq
 import time
 import platform
 import numpy as np
-import wishful_framework.upi_arg_classes.edca as edca #<----!!!!! Important to include it here; otherwise cannot be pickled!!!!
+
+import wishful_upis as upis
+from wishful_agent.core import exceptions
+import wishful_agent.core as wishful_module
 from .ath_module import AthModule
 
-__author__ = "Piotr Gawlowicz, Mikolaj Chwalisz, Anatolij Zubow"
+__author__ = "Piotr Gawlowicz, Anatolij Zubow"
 __copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
 __version__ = "0.1.0"
-__email__ = "{gawlowicz, chwalisz, zubow}@tkn.tu-berlin.de"
+__email__ = "{gawlowicz, zubow}@tkn.tu-berlin.de"
 
 
 @wishful_module.build_module
@@ -79,9 +78,9 @@ class Ath5kModule(AthModule):
             myfile = open('/sys/kernel/debug/ieee80211/' + phy_dev + '/' + prefix + '/ani', 'w')
             myfile.write(ani_mode)
             myfile.close()
+            return True
         except Exception as e:
             fname = inspect.currentframe().f_code.co_name
-            self.log.fatal("An error occurred in %s: %s" % (fname, e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
-
-        return True
+            self.log.fatal("Failed to configure radio sensitivity: %s" % str(e))
+            raise exceptions.UPIFunctionExecutionFailedException(func_name=inspect.currentframe().f_code.co_name,
+                                                                 err_msg='Failed to configure radio sensitivity: %s' + str(e))
