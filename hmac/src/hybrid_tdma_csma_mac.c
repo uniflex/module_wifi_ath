@@ -232,53 +232,56 @@ static int send_nl_msg(std::string& schedule)
 	if (!cb || !s_cb) {
 		fprintf(stderr, "failed to allocate netlink callbacks\n");
 		err = 2;
-		goto out_free_msg;
-	}
-
-	// create NetLink message
-	genlmsg_put(msg, 0, 0, state.nl80211_id, 0, 0, NL80211_ATTR_TID_SLEEP_CTRL, 0);
-	NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, devidx);
-
-	// update tids_tuple with current slot schedule
-    uint8_t mac_u8[6];
-    struct tid_sleep_tuple tids_tuple[tuples.size()];
-	for (int k=0; k<tuples.size(); k++) {
-		std::vector<std::string> tuple = split(tuples[k], ',');
-        sscanf(tuple[0].c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &mac_u8[0], &mac_u8[1], &mac_u8[2], &mac_u8[3], &mac_u8[4], &mac_u8[5]);
-		int tid_mask = atoi(tuple[1].c_str());
-        
-        for (int zz=0; zz<6; zz++) {
-            tids_tuple[k].mac[zz] = mac_u8[zz];
-        }
-        tids_tuple[k].mask = tid_mask;
-	}
-
-    NLA_PUT(msg, NL80211_ATTR_TID_SLEEP_CTRL_DATA, sizeof(struct tid_sleep_tuple)*tuples.size(), (const void *) &tids_tuple[0]);
-	nl_socket_set_cb(state.nl_sock, s_cb);
-
-	// send message
-	err = nl_send_auto_complete(state.nl_sock, msg);
-	if (err < 0)
-		goto out;
-
-	err = 1;
-
-	nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
-	nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
-	nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
-
-	while (err > 0) {
-		nl_recvmsgs(state.nl_sock, cb);
-	}
-
-	out:
-		nl_cb_put(cb);
-	out_free_msg:
 		nlmsg_free(msg);
 		return err;
+	} else {
+
+        // create NetLink message
+        genlmsg_put(msg, 0, 0, state.nl80211_id, 0, 0, NL80211_ATTR_TID_SLEEP_CTRL, 0);
+        NLA_PUT_U32(msg, NL80211_ATTR_IFINDEX, devidx);
+
+        // update tids_tuple with current slot schedule
+        uint8_t mac_u8[6];
+        struct tid_sleep_tuple tids_tuple[tuples.size()];
+        for (int k=0; k<tuples.size(); k++) {
+            std::vector<std::string> tuple = split(tuples[k], ',');
+            sscanf(tuple[0].c_str(), "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &mac_u8[0], &mac_u8[1], &mac_u8[2], &mac_u8[3], &mac_u8[4], &mac_u8[5]);
+            int tid_mask = atoi(tuple[1].c_str());
+
+            for (int zz=0; zz<6; zz++) {
+                tids_tuple[k].mac[zz] = mac_u8[zz];
+            }
+            tids_tuple[k].mask = tid_mask;
+        }
+
+        NLA_PUT(msg, NL80211_ATTR_TID_SLEEP_CTRL_DATA, sizeof(struct tid_sleep_tuple)*tuples.size(), (const void *) &tids_tuple[0]);
+        nl_socket_set_cb(state.nl_sock, s_cb);
+
+        // send message
+        err = nl_send_auto_complete(state.nl_sock, msg);
+        if (err < 0)
+        {
+            nl_cb_put(cb);
+            nlmsg_free(msg);
+            return err;
+        }
+
+        err = 1;
+
+        nl_cb_err(cb, NL_CB_CUSTOM, error_handler, &err);
+        nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, finish_handler, &err);
+        nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, ack_handler, &err);
+
+        while (err > 0) {
+            nl_recvmsgs(state.nl_sock, cb);
+        }
+    }
+
 	nla_put_failure:
+	{
 		fprintf(stderr, "building message failed\n");
 		return 2;
+    }
 }
 
 /** initialize netlink */

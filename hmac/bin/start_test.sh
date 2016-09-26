@@ -1,5 +1,5 @@
 #!/bin/bash
 
-echo "Standalone MAC test ... "
+echo "Standalone hybrid MAC test ... "
 
-sudo ./64bit/x86_64/hybrid_tdma_csmaac -d 0 -i wifi0 -f 20000 -n 10
+sudo ./hybrid_tdma_csmaac -d 0 -i wifi0 -f 20000 -n 10
