@@ -25,6 +25,25 @@ class WifiATHController(wishful_module.ControllerModule):
     def my_start_function(self):
         self.log.info("start wifi ath test")
 
+    @wishful_module.on_exit()
+    def my_stop_function(self):
+        self.log.info("stop wifi ath test")
+
+
+'''
+Local test of hybrid MAC in WiFi ATH component.
+'''
+
+@wishful_module.build_module
+class WifiHMACController(wishful_module.ControllerModule):
+    def __init__(self):
+        super(WifiHMACController, self).__init__()
+        self.log = logging.getLogger('WifiHMACController')
+
+    @wishful_module.on_start()
+    def my_start_function(self):
+        self.log.info("start wifi ath test")
+
         try:
             node = self.localNode
             self.log.info(node)

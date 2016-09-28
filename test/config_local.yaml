@@ -9,7 +9,7 @@ agent_config:
 controllers:
   myController:
       file : local_test.py
-      class_name : WifiATHController
+      class_name : WifiHMACController
       kwargs : {}
 
 modules:
