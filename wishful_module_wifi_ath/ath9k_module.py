@@ -22,14 +22,9 @@ __email__ = "{gawlowicz, zubow}@tkn.tu-berlin.de"
 
 @wishful_module.build_module
 class Ath9kModule(AthModule):
-    def __init__(self, path_to_native_binary='.', local_mac_processor_port=1217):
+    def __init__(self, local_mac_processor_port=1217):
         super(Ath9kModule, self).__init__()
         self.log = logging.getLogger('Ath9kModule')
-        # Path to platform dependent (native) binaries: here hybrid MAC
-        if path_to_native_binary is None:
-            self.log.error("Please set the path to platform dependent (native) binaries: here hybrid MAC")
-            raise exceptions.InvalidArgumentException(func_name='Ath9kModule::__init__ failed.')
-        self.path_to_native_binary = path_to_native_binary
         # Used by local controller for communication with mac processor
         self.local_mac_processor_port = local_mac_processor_port
 
@@ -52,7 +47,7 @@ class Ath9kModule(AthModule):
             conf_str = self.create_conf_string(hybridMac)
 
             # set-up executable here. note: it is platform-dependent
-            exec_file = str(os.path.join(self.self.path_to_native_binary)) + '/hybrid_tdma_csma_mac'
+            exec_file = 'hmac_userspace_daemon'
 
             processArgs = str(exec_file) + " -d 0 " + " -i" +str(interface) + " -f" + str(hybridMac.getSlotDuration()) + " -n" + str(hybridMac.getNumSlots()) + " -c" + conf_str
             self.log.info('Install hybrid mac executable w/ = %s' % str(processArgs))
@@ -65,7 +60,7 @@ class Ath9kModule(AthModule):
         except Exception as e:
             self.log.fatal("Failed to install MAC processor on %s: err_msg: %s" % (interface, e))
             raise exceptions.UPIFunctionExecutionFailedException(func_name=inspect.currentframe().f_code.co_name,
-                                                                 err_msg='Failed to install MAC processor: ' + str(e))
+                                                                 err_msg='Failed to install MAC processor; check HMAC installation.: ' + str(e))
 
     @wishful_module.bind_function(upis.radio.update_mac_processor)
     def update_mac_processor(self, interface, hybridMac):
