@@ -82,5 +82,6 @@ class Ath5kModule(AthModule):
         except Exception as e:
             fname = inspect.currentframe().f_code.co_name
             self.log.fatal("Failed to configure radio sensitivity: %s" % str(e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=inspect.currentframe().f_code.co_name,
-                                                                 err_msg='Failed to configure radio sensitivity: %s' + str(e))
+            raise exceptions.FunctionExecutionFailedException(
+                func_name=inspect.currentframe().f_code.co_name,
+                err_msg='Failed to configure radio sensitivity: %s' + str(e))

@@ -32,8 +32,9 @@ class Ath9kModule(AthModule):
     @wishful_module.bind_function(upis.radio.configure_radio_sensitivity)
     def configure_radio_sensitivity(self, phy_dev, **kwargs):
         self.log.error('Radio sensitivity function not yet implemented')
-        raise exceptions.UnsupportedUPIFunctionException(func_name=inspect.currentframe().f_code.co_name,
-                                                         conn_module='Ath9kModule')
+        raise exceptions.UnsupportedFunctionException(
+            func_name=inspect.currentframe().f_code.co_name,
+            conn_module='Ath9kModule')
         #return super(Ath9kModule, self).configure_radio_sensitivity(phy_dev, 'ath9k', **kwargs)
 
 
@@ -59,8 +60,9 @@ class Ath9kModule(AthModule):
             return True
         except Exception as e:
             self.log.fatal("Failed to install MAC processor on %s: err_msg: %s" % (interface, e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=inspect.currentframe().f_code.co_name,
-                                                                 err_msg='Failed to install MAC processor; check HMAC installation.: ' + str(e))
+            raise exceptions.FunctionExecutionFailedException(
+                func_name=inspect.currentframe().f_code.co_name,
+                err_msg='Failed to install MAC processor; check HMAC installation.: ' + str(e))
 
     @wishful_module.bind_function(upis.radio.update_mac_processor)
     def update_mac_processor(self, interface, hybridMac):
@@ -84,8 +86,9 @@ class Ath9kModule(AthModule):
             return True
         except zmq.ZMQError as e:
             self.log.fatal("Update MAC processor failed: %s" % (e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=inspect.currentframe().f_code.co_name,
-                                                                 err_msg='Update MAC processor failed: ' + str(e))
+            raise exceptions.FunctionExecutionFailedException(
+                func_name=inspect.currentframe().f_code.co_name,
+                err_msg='Update MAC processor failed: ' + str(e))
 
 
     @wishful_module.bind_function(upis.radio.uninstall_mac_processor)
@@ -122,8 +125,9 @@ class Ath9kModule(AthModule):
             return True
         except zmq.ZMQError as e:
             self.log.fatal("Failed to uninstall MAC processor %s" % str(e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=inspect.currentframe().f_code.co_name,
-                                                                 err_msg='Failed to uninstall MAC processor: ' + str(e))
+            raise exceptions.FunctionExecutionFailedException(
+                func_name=inspect.currentframe().f_code.co_name,
+                err_msg='Failed to uninstall MAC processor: ' + str(e))
 
 
     ''' Helper '''
@@ -185,6 +189,7 @@ class Ath9kModule(AthModule):
         except Exception as e:
             fname = inspect.currentframe().f_code.co_name
             self.log.fatal("An error occurred in %s: %s" % (fname, e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=fname, err_msg=str(e))
+            raise exceptions.FunctionExecutionFailedException(
+                func_name=fname, err_msg=str(e))
 
         return True

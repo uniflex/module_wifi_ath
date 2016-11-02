@@ -61,8 +61,9 @@ class AthModule(wishful_module_wifi.WifiModule):
             return True
         except Exception as e:
             self.log.fatal("Failed to set EDCA parameters: %s" % str(e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=inspect.currentframe().f_code.co_name,
-                                                                 err_msg='Failed to set EDCA parameters: ' + str(e))
+            raise exceptions.FunctionExecutionFailedException(
+                func_name=inspect.currentframe().f_code.co_name,
+                err_msg='Failed to set EDCA parameters: ' + str(e))
 
 
     @wishful_module.bind_function(upis.radio.get_mac_access_parameters)
@@ -85,8 +86,9 @@ class AthModule(wishful_module_wifi.WifiModule):
             return data
         except Exception as e:
             self.log.fatal("Failed to get EDCA parameters: %s" % str(e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=inspect.currentframe().f_code.co_name,
-                                                                 err_msg='Failed to get EDCA parameters: ' + str(e))
+            raise exceptions.FunctionExecutionFailedException(
+                func_name=inspect.currentframe().f_code.co_name,
+                err_msg='Failed to get EDCA parameters: ' + str(e))
 
 
     @wishful_module.bind_function(upis.radio.set_per_flow_tx_power)
@@ -114,8 +116,9 @@ class AthModule(wishful_module_wifi.WifiModule):
             return True
         except Exception as e:
             self.log.fatal("Failed to set per flow tx power: %s" % str(e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=inspect.currentframe().f_code.co_name,
-                                                                 err_msg='Failed to set per flow tx power: ' + str(e))
+            raise exceptions.FunctionExecutionFailedException(
+                func_name=inspect.currentframe().f_code.co_name,
+                err_msg='Failed to set per flow tx power: ' + str(e))
 
     ''' Helper '''
     def setMarking(self, flowId, table="mangle", chain="POSTROUTING", markId=None):
@@ -172,8 +175,9 @@ class AthModule(wishful_module_wifi.WifiModule):
             return True
         except Exception as e:
             self.log.fatal("Failed to clean per flow tx power: %s" % str(e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=inspect.currentframe().f_code.co_name,
-                                                                 err_msg='Failed to clean per flow tx power: ' + str(e))
+            raise exceptions.FunctionExecutionFailedException(
+                func_name=inspect.currentframe().f_code.co_name,
+                err_msg='Failed to clean per flow tx power: ' + str(e))
 
 
     @wishful_module.bind_function(upis.radio.get_per_flow_tx_power_table)
@@ -196,19 +200,20 @@ class AthModule(wishful_module_wifi.WifiModule):
             return data
         except Exception as e:
             self.log.fatal("Failed to get per flow tx power: %s" % str(e))
-            raise exceptions.UPIFunctionExecutionFailedException(func_name=inspect.currentframe().f_code.co_name,
-                                                                 err_msg='Failed to get per flow tx power: ' + str(e))
-
+            raise exceptions.FunctionExecutionFailedException(
+                func_name=inspect.currentframe().f_code.co_name,
+                err_msg='Failed to get per flow tx power: ' + str(e))
 
     @wishful_module.bind_function(upis.radio.get_noise)
     def get_noise(self):
         self.log.error('Get noise function not yet implemented')
-        raise exceptions.UnsupportedUPIFunctionException(func_name=inspect.currentframe().f_code.co_name,
-                                                         conn_module='AthModule')
-
+        raise exceptions.UnsupportedFunctionException(
+            func_name=inspect.currentframe().f_code.co_name,
+            conn_module='AthModule')
 
     @wishful_module.bind_function(upis.radio.get_airtime_utilization)
     def get_airtime_utilization(self):
         self.log.error('Get artime utilization function not yet implemented')
-        raise exceptions.UnsupportedUPIFunctionException(func_name=inspect.currentframe().f_code.co_name,
-                                                         conn_module='AthModule')
+        raise exceptions.UnsupportedFunctionException(
+            func_name=inspect.currentframe().f_code.co_name,
+            conn_module='AthModule')
