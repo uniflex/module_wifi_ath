@@ -1,17 +1,12 @@
 import logging
-import random
-import os
 import inspect
 import subprocess
 import zmq
 import time
-import platform
-import numpy as np
 
 import wishful_upis as upis
-from wishful_agent.core import exceptions
-import wishful_agent.core as wishful_module
-#import wishful_framework.upi_arg_classes.hmac as hmac
+from uniflex.core import exceptions
+from uniflex.core import modules
 from .ath_module import AthModule
 
 __author__ = "Piotr Gawlowicz, Anatolij Zubow"
@@ -20,7 +15,7 @@ __version__ = "0.1.0"
 __email__ = "{gawlowicz, zubow}@tkn.tu-berlin.de"
 
 
-@wishful_module.build_module
+@modules.build_module
 class Ath9kModule(AthModule):
     def __init__(self, local_mac_processor_port=1217):
         super(Ath9kModule, self).__init__()
@@ -29,7 +24,7 @@ class Ath9kModule(AthModule):
         self.local_mac_processor_port = local_mac_processor_port
 
 
-    @wishful_module.bind_function(upis.radio.configure_radio_sensitivity)
+    @modules.bind_function(upis.radio.configure_radio_sensitivity)
     def configure_radio_sensitivity(self, phy_dev, **kwargs):
         self.log.error('Radio sensitivity function not yet implemented')
         raise exceptions.UnsupportedFunctionException(
@@ -38,7 +33,7 @@ class Ath9kModule(AthModule):
         #return super(Ath9kModule, self).configure_radio_sensitivity(phy_dev, 'ath9k', **kwargs)
 
 
-    @wishful_module.bind_function(upis.radio.install_mac_processor)
+    @modules.bind_function(upis.radio.install_mac_processor)
     def install_mac_processor(self, interface, hybridMac):
 
         self.log.info('Function: installMacProcessor on iface: %s' % interface)
@@ -64,7 +59,7 @@ class Ath9kModule(AthModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to install MAC processor; check HMAC installation.: ' + str(e))
 
-    @wishful_module.bind_function(upis.radio.update_mac_processor)
+    @modules.bind_function(upis.radio.update_mac_processor)
     def update_mac_processor(self, interface, hybridMac):
 
         self.log.info('Function: updateMacProcessor on iface: %s' % interface)
@@ -91,7 +86,7 @@ class Ath9kModule(AthModule):
                 err_msg='Update MAC processor failed: ' + str(e))
 
 
-    @wishful_module.bind_function(upis.radio.uninstall_mac_processor)
+    @modules.bind_function(upis.radio.uninstall_mac_processor)
     def uninstall_mac_processor(self, interface, hybridMac):
 
         self.log.info('Function: uninstallMacProcessor on iface: %s' % interface)
@@ -149,12 +144,11 @@ class Ath9kModule(AthModule):
 
         return conf_str
 
-
     ''' Helper '''
     def create_allow_all_conf_string(self, hybridMac):
         # generate configuration string
         conf_str = None
-        for ii in range(hybridMac.getNumSlots()): # for each slot
+        for ii in range(hybridMac.getNumSlots()):  # for each slot
             # slot_id, mac_addr, tid_mask
             if conf_str is None:
                 conf_str = str(ii) + "," + 'FF:FF:FF:FF:FF:FF' + "," + str(255)
@@ -163,7 +157,7 @@ class Ath9kModule(AthModule):
 
         return conf_str
 
-    @wishful_module.bind_function(upis.radio.configure_radio_sensitivity)
+    @modules.bind_function(upis.radio.configure_radio_sensitivity)
     def configure_radio_sensitivity(self, phy_dev, **kwargs):
 
         '''

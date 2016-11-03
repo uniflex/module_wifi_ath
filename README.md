@@ -1,9 +1,7 @@
-WiSHFUL ATH Modules
+UniFlex ATH Modules
 ============================
 
-This is a prototypic implementation of a wireless agent providing the Unified
-Programming Interfaces (UPIs) of the Wishful software platform for
-radio and network control.
+Device Module for Atheros Wi-Fi cards
 
 ## Hybrid MAC
 
@@ -25,4 +23,4 @@ Just use the following bibtex:
 
 (1) HMAC Bib
 
-(2) Wishful framework Bib
+(2) UniFlex framework Bib

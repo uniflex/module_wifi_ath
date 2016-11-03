@@ -1,22 +1,13 @@
 import logging
-import random
-import pickle
-import os
 import inspect
 import subprocess
-import zmq
-import time
-import platform
-import numpy as np
 import iptc
 from pytc.TrafficControl import TrafficControl
 
-import wishful_module_wifi
+import uniflex_module_wifi
 import wishful_upis as upis
-from wishful_agent.core import exceptions
-import wishful_agent.core as wishful_module
-#import wishful_framework.upi_arg_classes.edca as edca #<----!!!!! Important to include it here; otherwise cannot be pickled!!!!
-#import wishful_framework.upi_arg_classes.flow_id as FlowId
+from uniflex.core import exceptions
+from uniflex.core import modules
 
 
 __author__ = "Piotr Gawlowicz, Anatolij Zubow, Mikolaj Chwalisz"
@@ -24,14 +15,14 @@ __copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
 __version__ = "0.1.0"
 __email__ = "{gawlowicz, zubow, chwalisz}@tkn.tu-berlin.de"
 
-@wishful_module.build_module
-class AthModule(wishful_module_wifi.WifiModule):
+
+@modules.build_module
+class AthModule(uniflex_module_wifi.WifiModule):
     def __init__(self):
         super(AthModule, self).__init__()
         self.log = logging.getLogger('AthModule')
 
-
-    @wishful_module.bind_function(upis.radio.set_mac_access_parameters)
+    @modules.bind_function(upis.radio.set_mac_access_parameters)
     def setEdcaParameters(self, iface, queueId, queueParams):
         '''
         Sets the MAC access parameters -> see IEEE 802.11e
@@ -65,8 +56,7 @@ class AthModule(wishful_module_wifi.WifiModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to set EDCA parameters: ' + str(e))
 
-
-    @wishful_module.bind_function(upis.radio.get_mac_access_parameters)
+    @modules.bind_function(upis.radio.get_mac_access_parameters)
     def getEdcaParameters(self, iface):
         self.log.debug("ATH9K gets EDCA parameters for interface: {}".format(iface))
 
@@ -90,8 +80,7 @@ class AthModule(wishful_module_wifi.WifiModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to get EDCA parameters: ' + str(e))
 
-
-    @wishful_module.bind_function(upis.radio.set_per_flow_tx_power)
+    @modules.bind_function(upis.radio.set_per_flow_tx_power)
     def set_per_flow_tx_power(self, iface, flowId, txPower):
         self.log.debug('set_per_flow_tx_power on iface: {}'.format(iface))
 
@@ -122,7 +111,6 @@ class AthModule(wishful_module_wifi.WifiModule):
 
     ''' Helper '''
     def setMarking(self, flowId, table="mangle", chain="POSTROUTING", markId=None):
-        
         if not markId:
             tcMgr = TrafficControl()
             markId = tcMgr.generateMark()
@@ -153,8 +141,7 @@ class AthModule(wishful_module_wifi.WifiModule):
         chain = iptc.Chain(iptc.Table(table), chain)
         chain.insert_rule(rule)
 
-
-    @wishful_module.bind_function(upis.radio.clean_per_flow_tx_power_table)
+    @modules.bind_function(upis.radio.clean_per_flow_tx_power_table)
     def clean_per_flow_tx_power_table(self, iface):
         self.log.debug('clean_per_flow_tx_power_table on iface: {}'.format(iface))
 
@@ -179,8 +166,7 @@ class AthModule(wishful_module_wifi.WifiModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to clean per flow tx power: ' + str(e))
 
-
-    @wishful_module.bind_function(upis.radio.get_per_flow_tx_power_table)
+    @modules.bind_function(upis.radio.get_per_flow_tx_power_table)
     def get_per_flow_tx_power_table(self, iface):
         self.log.debug('get_per_flow_tx_power_table on iface: {}'.format(iface))
 
@@ -204,14 +190,14 @@ class AthModule(wishful_module_wifi.WifiModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to get per flow tx power: ' + str(e))
 
-    @wishful_module.bind_function(upis.radio.get_noise)
+    @modules.bind_function(upis.radio.get_noise)
     def get_noise(self):
         self.log.error('Get noise function not yet implemented')
         raise exceptions.UnsupportedFunctionException(
             func_name=inspect.currentframe().f_code.co_name,
             conn_module='AthModule')
 
-    @wishful_module.bind_function(upis.radio.get_airtime_utilization)
+    @modules.bind_function(upis.radio.get_airtime_utilization)
     def get_airtime_utilization(self):
         self.log.error('Get artime utilization function not yet implemented')
         raise exceptions.UnsupportedFunctionException(

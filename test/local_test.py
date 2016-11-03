@@ -1,10 +1,7 @@
 import logging
 import datetime
-import time
-import random
 import wishful_upis as upis
-from wishful_agent.core import wishful_module
-from wishful_agent.timer import TimerEventSender
+from uniflex.core import modules
 
 __author__ = "Anatolij Zubow"
 __copyright__ = "Copyright (c) 2016, Technische Universität Berlin"
@@ -15,17 +12,18 @@ __email__ = "{zubow}@tkn.tu-berlin.de"
 Local test of WiFi ATH component.
 '''
 
-@wishful_module.build_module
-class WifiATHController(wishful_module.ControllerModule):
+
+@modules.build_module
+class WifiATHController(modules.ControllerModule):
     def __init__(self):
         super(WifiATHController, self).__init__()
         self.log = logging.getLogger('WifiATHController')
 
-    @wishful_module.on_start()
+    @modules.on_start()
     def my_start_function(self):
         self.log.info("start wifi ath test")
 
-    @wishful_module.on_exit()
+    @modules.on_exit()
     def my_stop_function(self):
         self.log.info("stop wifi ath test")
 
@@ -34,13 +32,14 @@ class WifiATHController(wishful_module.ControllerModule):
 Local test of hybrid MAC in WiFi ATH component.
 '''
 
-@wishful_module.build_module
-class WifiHMACController(wishful_module.ControllerModule):
+
+@modules.build_module
+class WifiHMACController(modules.ControllerModule):
     def __init__(self):
         super(WifiHMACController, self).__init__()
         self.log = logging.getLogger('WifiHMACController')
 
-    @wishful_module.on_start()
+    @modules.on_start()
     def my_start_function(self):
         self.log.info("start wifi ath test")
 
@@ -53,7 +52,8 @@ class WifiHMACController(wishful_module.ControllerModule):
             iface = 'ap1'
             total_slots = 10
             slot_duration = 20000
-            dstHWAddr = "04:f0:21:17:36:68"  # node on which scheme should be applied, e.g. nuc15 interface sta1
+            # node on which scheme should be applied, e.g. nuc15 interface sta1
+            dstHWAddr = "04:f0:21:17:36:68"
 
             # create new MAC for local node
             mac = upis.wifi.HybridTDMACSMAMac(no_slots_in_superframe=total_slots, slot_duration_ns=slot_duration)
@@ -79,10 +79,11 @@ class WifiHMACController(wishful_module.ControllerModule):
                 self.log.info('HMAC install failed.')
 
         except Exception as e:
-            self.log.error("{} Failed with install_mac_processor, err_msg: {}".format(datetime.datetime.now(), e))
+            self.log.error("{} Failed with install_mac_processor, err_msg: {}"
+                           .format(datetime.datetime.now(), e))
 
         self.log.info('... done')
 
-    @wishful_module.on_exit()
+    @modules.on_exit()
     def my_stop_function(self):
         self.log.info("stop wifi ath test")

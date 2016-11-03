@@ -1,17 +1,9 @@
 import logging
-import random
-import pickle
-import os
 import inspect
-import subprocess
-import zmq
-import time
-import platform
-import numpy as np
 
 import wishful_upis as upis
-from wishful_agent.core import exceptions
-import wishful_agent.core as wishful_module
+from uniflex.core import exceptions
+from uniflex.core import modules
 from .ath_module import AthModule
 
 __author__ = "Piotr Gawlowicz, Anatolij Zubow"
@@ -20,13 +12,13 @@ __version__ = "0.1.0"
 __email__ = "{gawlowicz, zubow}@tkn.tu-berlin.de"
 
 
-@wishful_module.build_module
+@modules.build_module
 class Ath5kModule(AthModule):
     def __init__(self):
         super(Ath5kModule, self).__init__()
         self.log = logging.getLogger('Ath5kModule')
 
-    @wishful_module.bind_function(upis.radio.configure_radio_sensitivity)
+    @modules.bind_function(upis.radio.configure_radio_sensitivity)
     def configure_radio_sensitivity(self, phy_dev, **kwargs):
 
         '''
@@ -54,9 +46,9 @@ class Ath5kModule(AthModule):
 
             Documentation from Linux Kernel:
 
-            Adaptive Noise Immunity (ANI) controls five noise immunity parameters
-            depending on the amount of interference in the environment, increasing
-            or reducing sensitivity as necessary.
+            Adaptive Noise Immunity (ANI) controls five noise immunity
+            parameters depending on the amount of interference in the
+            environment, increasing or reducing sensitivity as necessary.
 
             The parameters are:
 
@@ -66,9 +58,9 @@ class Ath5kModule(AthModule):
             - "OFDM weak signal detection"
             - "CCK weak signal detection"
 
-            Basically we look at the amount of ODFM and CCK timing errors we get and then
-            raise or lower immunity accordingly by setting one or more of these
-            parameters.
+            Basically we look at the amount of ODFM and CCK timing errors
+            we get and then raise or lower immunity accordingly by setting
+            one or more of these parameters.
         '''
         prefix = 'ath5k'
         ani_mode = kwargs.get('ani_mode')
