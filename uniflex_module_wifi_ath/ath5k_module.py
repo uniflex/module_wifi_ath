@@ -12,7 +12,6 @@ __version__ = "0.1.0"
 __email__ = "{gawlowicz, zubow}@tkn.tu-berlin.de"
 
 
-@modules.build_module
 class Ath5kModule(AthModule):
     def __init__(self):
         super(Ath5kModule, self).__init__()

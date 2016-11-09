@@ -16,7 +16,6 @@ __version__ = "0.1.0"
 __email__ = "{gawlowicz, zubow, chwalisz}@tkn.tu-berlin.de"
 
 
-@modules.build_module
 class AthModule(uniflex_module_wifi.WifiModule):
     def __init__(self):
         super(AthModule, self).__init__()

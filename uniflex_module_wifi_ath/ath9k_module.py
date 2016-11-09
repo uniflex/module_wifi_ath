@@ -15,7 +15,6 @@ __version__ = "0.1.0"
 __email__ = "{gawlowicz, zubow}@tkn.tu-berlin.de"
 
 
-@modules.build_module
 class Ath9kModule(AthModule):
     def __init__(self, local_mac_processor_port=1217):
         super(Ath9kModule, self).__init__()

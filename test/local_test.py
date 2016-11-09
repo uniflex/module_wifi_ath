@@ -13,8 +13,7 @@ Local test of WiFi ATH component.
 '''
 
 
-@modules.build_module
-class WifiATHController(modules.ControllerModule):
+class WifiATHController(modules.ControlApplication):
     def __init__(self):
         super(WifiATHController, self).__init__()
         self.log = logging.getLogger('WifiATHController')
@@ -33,8 +32,7 @@ Local test of hybrid MAC in WiFi ATH component.
 '''
 
 
-@modules.build_module
-class WifiHMACController(modules.ControllerModule):
+class WifiHMACController(modules.ControlApplication):
     def __init__(self):
         super(WifiHMACController, self).__init__()
         self.log = logging.getLogger('WifiHMACController')
@@ -56,7 +54,9 @@ class WifiHMACController(modules.ControllerModule):
             dstHWAddr = "04:f0:21:17:36:68"
 
             # create new MAC for local node
-            mac = upis.wifi.HybridTDMACSMAMac(no_slots_in_superframe=total_slots, slot_duration_ns=slot_duration)
+            mac = upis.wifi.HybridTDMACSMAMac(
+                no_slots_in_superframe=total_slots,
+                slot_duration_ns=slot_duration)
 
             be_slots = [1, 2, 3, 4]
 
