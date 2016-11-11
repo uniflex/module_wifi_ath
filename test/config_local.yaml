@@ -1,12 +1,11 @@
 ## UniFlex Agent config file
 
-agent_config:
+config:
   name: 'Local_Controller'
   info: 'local test of wifi ath module'
-  type: 'local'
   iface: 'lo'
 
-controllers:
+control_applications:
   myController:
       file : local_test.py
       class_name : WifiHMACController
