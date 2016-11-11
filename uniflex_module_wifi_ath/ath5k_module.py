@@ -1,9 +1,7 @@
 import logging
 import inspect
 
-import wishful_upis as upis
 from uniflex.core import exceptions
-from uniflex.core import modules
 from .ath_module import AthModule
 
 __author__ = "Piotr Gawlowicz, Anatolij Zubow"
@@ -17,7 +15,6 @@ class Ath5kModule(AthModule):
         super(Ath5kModule, self).__init__()
         self.log = logging.getLogger('Ath5kModule')
 
-    @modules.bind_function(upis.radio.configure_radio_sensitivity)
     def configure_radio_sensitivity(self, phy_dev, **kwargs):
 
         '''

@@ -5,9 +5,7 @@ import iptc
 from pytc.TrafficControl import TrafficControl
 
 import uniflex_module_wifi
-import wishful_upis as upis
 from uniflex.core import exceptions
-from uniflex.core import modules
 
 
 __author__ = "Piotr Gawlowicz, Anatolij Zubow, Mikolaj Chwalisz"
@@ -21,8 +19,7 @@ class AthModule(uniflex_module_wifi.WifiModule):
         super(AthModule, self).__init__()
         self.log = logging.getLogger('AthModule')
 
-    @modules.bind_function(upis.radio.set_mac_access_parameters)
-    def setEdcaParameters(self, iface, queueId, queueParams):
+    def set_mac_access_parameters(self, iface, queueId, queueParams):
         '''
         Sets the MAC access parameters -> see IEEE 802.11e
         TODO: replace by Netlink
@@ -55,8 +52,7 @@ class AthModule(uniflex_module_wifi.WifiModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to set EDCA parameters: ' + str(e))
 
-    @modules.bind_function(upis.radio.get_mac_access_parameters)
-    def getEdcaParameters(self, iface):
+    def get_mac_access_parameters(self, iface):
         self.log.debug("ATH9K gets EDCA parameters for interface: {}".format(iface))
 
         try:
@@ -79,7 +75,6 @@ class AthModule(uniflex_module_wifi.WifiModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to get EDCA parameters: ' + str(e))
 
-    @modules.bind_function(upis.radio.set_per_flow_tx_power)
     def set_per_flow_tx_power(self, iface, flowId, txPower):
         self.log.debug('set_per_flow_tx_power on iface: {}'.format(iface))
 
@@ -140,7 +135,6 @@ class AthModule(uniflex_module_wifi.WifiModule):
         chain = iptc.Chain(iptc.Table(table), chain)
         chain.insert_rule(rule)
 
-    @modules.bind_function(upis.radio.clean_per_flow_tx_power_table)
     def clean_per_flow_tx_power_table(self, iface):
         self.log.debug('clean_per_flow_tx_power_table on iface: {}'.format(iface))
 
@@ -165,7 +159,6 @@ class AthModule(uniflex_module_wifi.WifiModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to clean per flow tx power: ' + str(e))
 
-    @modules.bind_function(upis.radio.get_per_flow_tx_power_table)
     def get_per_flow_tx_power_table(self, iface):
         self.log.debug('get_per_flow_tx_power_table on iface: {}'.format(iface))
 
@@ -189,14 +182,12 @@ class AthModule(uniflex_module_wifi.WifiModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to get per flow tx power: ' + str(e))
 
-    @modules.bind_function(upis.radio.get_noise)
     def get_noise(self):
         self.log.error('Get noise function not yet implemented')
         raise exceptions.UnsupportedFunctionException(
             func_name=inspect.currentframe().f_code.co_name,
             conn_module='AthModule')
 
-    @modules.bind_function(upis.radio.get_airtime_utilization)
     def get_airtime_utilization(self):
         self.log.error('Get artime utilization function not yet implemented')
         raise exceptions.UnsupportedFunctionException(
