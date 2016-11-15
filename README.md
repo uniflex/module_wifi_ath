@@ -3,6 +3,9 @@ UniFlex ATH Modules
 
 Device Module for Atheros Wi-Fi cards
 
+## Installation:
+To install UniFlex framework with all available modules, please through all steps in [manifest](https://github.com/uniflex/manifests) repository.
+
 ## Hybrid MAC
 
 In order to use the hybrid MAC (part of this module) please follow the
