@@ -12,34 +12,35 @@ __copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
 __version__ = "0.1.0"
 __email__ = "{gawlowicz, zubow}@tkn.tu-berlin.de"
 
-
+"""
+    Atheros ATH9k specific functionality.
+"""
 class Ath9kModule(AthModule):
     def __init__(self, local_mac_processor_port=1217):
         super(Ath9kModule, self).__init__()
         self.log = logging.getLogger('Ath9kModule')
         # Used by local controller for communication with mac processor
         self.local_mac_processor_port = local_mac_processor_port
+        # set-up executable here. note: it is platform-dependent
+        self.exec_file = 'hmac_userspace_daemon'
 
-    def configure_radio_sensitivity(self, phy_dev, **kwargs):
-        self.log.error('Radio sensitivity function not yet implemented')
-        raise exceptions.UnsupportedFunctionException(
-            func_name=inspect.currentframe().f_code.co_name,
-            conn_module='Ath9kModule')
-        #return super(Ath9kModule, self).configure_radio_sensitivity(phy_dev, 'ath9k', **kwargs)
+    ''' HMAC '''
 
     def install_mac_processor(self, interface, hybridMac):
-
+        """
+        Installs hMAC configuration and activates hMAC
+        :param interface: the name of the interface
+        :param hybridMac: the hMAC configuration
+        :return:
+        """
         self.log.info('Function: installMacProcessor on iface: %s' % interface)
 
         try:
             # create configuration string
-            conf_str = self.create_conf_string(hybridMac)
+            conf_str = hybridMac.createConfString()
 
-            # set-up executable here. note: it is platform-dependent
-            exec_file = 'hmac_userspace_daemon'
-
-            processArgs = str(exec_file) + " -d 0 " + " -i" +str(interface) + " -f" + str(hybridMac.getSlotDuration()) + " -n" + str(hybridMac.getNumSlots()) + " -c" + conf_str
-            self.log.info('Install hybrid mac executable w/ = %s' % str(processArgs))
+            processArgs = str(self.exec_file) + " -d 0 " + " -i" +str(interface) + " -f" + str(hybridMac.getSlotDuration()) + " -n" + str(hybridMac.getNumSlots()) + " -c" + conf_str
+            self.log.info('Install hMAC executable w/ = %s' % str(processArgs))
 
             # run as background process
             subprocess.Popen(processArgs.split(), shell=False)
@@ -53,12 +54,12 @@ class Ath9kModule(AthModule):
                 err_msg='Failed to install MAC processor; check HMAC installation.: ' + str(e))
 
     def update_mac_processor(self, interface, hybridMac):
-
+        ''' Updates hMAC configuration of a running hMAC '''
         self.log.info('Function: updateMacProcessor on iface: %s' % interface)
 
         try:
             # create configuration string
-            conf_str = self.create_conf_string(hybridMac)
+            conf_str = hybridMac.createConfString()
 
             if self.hmac_ctrl_socket is None:
                 context = zmq.Context()
@@ -83,7 +84,7 @@ class Ath9kModule(AthModule):
 
         try:
             # set allow all configuration string
-            conf_str = self.create_allow_all_conf_string(hybridMac)
+            conf_str = hybridMac.createAllowAllConfString()
 
             # command string
             terminate_str = 'TERMINATE'
@@ -114,38 +115,7 @@ class Ath9kModule(AthModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to uninstall MAC processor: ' + str(e))
 
-
-    ''' Helper '''
-    def create_conf_string(self, hybridMac):
-        # create configuration string
-        conf_str = None
-        for ii in range(hybridMac.getNumSlots()):  # for each slot
-            ac = hybridMac.getAccessPolicy(ii)
-            entries = ac.getEntries()
-
-            for ll in range(len(entries)):
-                entry = entries[ll]
-
-                # slot_id, mac_addr, tid_mask
-                if conf_str is None:
-                    conf_str = str(ii) + "," + str(entry[0]) + "," + str(entry[1])
-                else:
-                    conf_str = conf_str + "#" + str(ii) + "," + str(entry[0]) + "," + str(entry[1])
-
-        return conf_str
-
-    ''' Helper '''
-    def create_allow_all_conf_string(self, hybridMac):
-        # generate configuration string
-        conf_str = None
-        for ii in range(hybridMac.getNumSlots()):  # for each slot
-            # slot_id, mac_addr, tid_mask
-            if conf_str is None:
-                conf_str = str(ii) + "," + 'FF:FF:FF:FF:FF:FF' + "," + str(255)
-            else:
-                conf_str = conf_str + "#" + str(ii) + "," + 'FF:FF:FF:FF:FF:FF' + "," + str(255)
-
-        return conf_str
+    ''' Radio sensitivity '''
 
     def configure_radio_sensitivity(self, phy_dev, **kwargs):
 
