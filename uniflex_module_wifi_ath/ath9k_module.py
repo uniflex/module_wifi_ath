@@ -13,7 +13,9 @@ __version__ = "0.1.0"
 __email__ = "{gawlowicz, zubow}@tkn.tu-berlin.de"
 
 """
-    Atheros ATH9k specific functionality.
+    Atheros ATH9k specific functionality:
+    - hybrid TDMA/CSMA
+    - sensitivity control
 """
 class Ath9kModule(AthModule):
     def __init__(self, local_mac_processor_port=1217):
@@ -23,28 +25,40 @@ class Ath9kModule(AthModule):
         self.local_mac_processor_port = local_mac_processor_port
         # set-up executable here. note: it is platform-dependent
         self.exec_file = 'hmac_userspace_daemon'
+        self.prefix = 'ath9k'
+        self.active_hmac_conf = None
 
     ''' HMAC '''
 
-    def install_mac_processor(self, interface, hybridMac):
+    def activate_radio_program(self, hmac_name, hmac_conf, interface=None):
         """
         Installs hMAC configuration and activates hMAC
-        :param interface: the name of the interface
-        :param hybridMac: the hMAC configuration
-        :return:
+        :param hmac_name: name of the HMAC conf; used as ID internally
+        :param hmac_conf: the hMAC configuration
+        :param iface: the name of interface
+        :return: True if successful
         """
-        self.log.info('Function: installMacProcessor on iface: %s' % interface)
+
+        self.log.info('Function: activate_radio_program')
 
         try:
-            # create configuration string
-            conf_str = hybridMac.createConfString()
+            if interface == None:
+                self.log.warn('Iface is required')
+                return
 
-            processArgs = str(self.exec_file) + " -d 0 " + " -i" +str(interface) + " -f" + str(hybridMac.getSlotDuration()) + " -n" + str(hybridMac.getNumSlots()) + " -c" + conf_str
+            # create configuration string
+            conf_str = hmac_conf.createConfString()
+
+            processArgs = str(self.exec_file) + " -d 0 " + " -i" +str(interface) \
+                          + " -f" + str(hmac_conf.getSlotDuration()) + " -n" + str(hmac_conf.getNumSlots()) \
+                          + " -c" + conf_str
+
             self.log.info('Install hMAC executable w/ = %s' % str(processArgs))
 
             # run as background process
             subprocess.Popen(processArgs.split(), shell=False)
 
+            self.active_hmac_conf = hmac_conf
             self.hmac_ctrl_socket = None
             return True
         except Exception as e:
@@ -53,13 +67,25 @@ class Ath9kModule(AthModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to install MAC processor; check HMAC installation.: ' + str(e))
 
-    def update_mac_processor(self, interface, hybridMac):
-        ''' Updates hMAC configuration of a running hMAC '''
-        self.log.info('Function: updateMacProcessor on iface: %s' % interface)
+
+    def update_radio_program(self, hmac_name, hmac_conf, interface=None):
+        """
+        Updates a running hMAC configuration on-the-fly
+        :param hmac_name: hmac name/ID
+        :param hmac_conf: the hMac configuration
+        :param interface: the name of interface
+        :return: True if successful
+        """
+
+        self.log.info('Function: update_radio_program')
 
         try:
+            if interface == None:
+                self.log.warn('Iface is required')
+                return
+
             # create configuration string
-            conf_str = hybridMac.createConfString()
+            conf_str = hmac_conf.createConfString()
 
             if self.hmac_ctrl_socket is None:
                 context = zmq.Context()
@@ -71,6 +97,8 @@ class Ath9kModule(AthModule):
             self.hmac_ctrl_socket.send(conf_str)
             message = self.hmac_ctrl_socket.recv()
             self.log.info("Received ctrl reply message from HMAC: %s" % message)
+            self.active_hmac_conf = hmac_conf
+
             return True
         except zmq.ZMQError as e:
             self.log.fatal("Update MAC processor failed: %s" % (e))
@@ -78,13 +106,23 @@ class Ath9kModule(AthModule):
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Update MAC processor failed: ' + str(e))
 
-    def uninstall_mac_processor(self, interface, hybridMac):
 
-        self.log.info('Function: uninstallMacProcessor on iface: %s' % interface)
+    def deactivate_radio_program(self, hmac_name, do_pause=False):
+        """
+        Stops running hMAC configuration, i.e. standard CSMA/CA is used afterwards.
+        :param hmac_name: the name of the HMAC to be deactivated; the last loaded in case of None
+        :param do_pause: just pause or terminate
+        :return: True if successful
+        """
+        self.log.info('Function: deactivate_radio_program')
 
         try:
+            if self.active_hmac_conf == None:
+                self.log.warn('No hMAC was activated before; ignoring.')
+                return
+
             # set allow all configuration string
-            conf_str = hybridMac.createAllowAllConfString()
+            conf_str = self.active_hmac_conf.createAllowAllConfString()
 
             # command string
             terminate_str = 'TERMINATE'
@@ -108,6 +146,7 @@ class Ath9kModule(AthModule):
             message = self.hmac_ctrl_socket.recv()
             self.log.info("Received ctrl reply from HMAC: %s" % message)
 
+            self.active_hmac_conf = None
             return True
         except zmq.ZMQError as e:
             self.log.fatal("Failed to uninstall MAC processor %s" % str(e))
@@ -117,26 +156,21 @@ class Ath9kModule(AthModule):
 
     ''' Radio sensitivity '''
 
-    def configure_radio_sensitivity(self, phy_dev, **kwargs):
+    def configure_radio_sensitivity(self, ani_mode):
+        """
+        Configuring the carrier receiving sensitivity of the radio.
+        Req.: modprobe ath5k/9k debug=0xffffffff
+        Supported ani modes:
+        - 0 - disable ANI
+        - tbd
+        :param ani_mode: The ANI mode, 0=disable, other=tbd
+        :return: True if successful
+        """
 
-        '''
-            Configuring the carrier receiving sensitivity of the radio.
-            Req.: modprobe ath5k/9k debug=0xffffffff
-
-            #configuration of ath5k's ANI settings
-            # disable ani
-            echo "0" > /sys/kernel/debug/ieee80211/phy0/ath9k/ani
-
-            supported ani modes:
-            - 0 - disable ANI
-            - tbd
-        '''
-        prefix = 'ath9k'
-        ani_mode = kwargs.get('ani_mode')
         self.log.info('Setting ANI sensitivity w/ = %s' % str(ani_mode))
 
         try:
-            myfile = open('/sys/kernel/debug/ieee80211/' + phy_dev + '/' + prefix + '/ani', 'w')
+            myfile = open('/sys/kernel/debug/ieee80211/' + self.phyName + '/' + self.prefix + '/ani', 'w')
             myfile.write(ani_mode)
             myfile.close()
         except Exception as e:

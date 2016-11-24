@@ -14,56 +14,55 @@ class Ath5kModule(AthModule):
     def __init__(self):
         super(Ath5kModule, self).__init__()
         self.log = logging.getLogger('Ath5kModule')
+        self.prefix = 'ath5k'
 
-    def configure_radio_sensitivity(self, phy_dev, **kwargs):
+    def configure_radio_sensitivity(self, ani_mode):
+        """
+        Configuring the carrier receiving sensitivity of the radio.
+        Req.: modprobe ath5k/9k debug=0xffffffff
 
-        '''
-            Configuring the carrier receiving sensitivity of the radio.
-            Req.: modprobe ath5k/9k debug=0xffffffff
+        Supported ani modes:
+        - sens-low
+        - sens-high
+        - ani-off
+        - ani-on
+        - noise-low
+        - noise-high
+        - spur-low
+        - spur-high
+        - fir-low
+        - fir-high
+        - ofdm-off
+        - ofdm-on
+        - cck-off
+        - cck-on
 
-            #configuration of ath5k's ANI settings
-            echo "ani-off" > /sys/kernel/debug/ieee80211/phy0/ath5k/ani
+        Documentation from Linux Kernel:
 
-            supported ani modes:
-            - sens-low
-            - sens-high
-            - ani-off
-            - ani-on
-            - noise-low
-            - noise-high
-            - spur-low
-            - spur-high
-            - fir-low
-            - fir-high
-            - ofdm-off
-            - ofdm-on
-            - cck-off
-            - cck-on
+        Adaptive Noise Immunity (ANI) controls five noise immunity
+        parameters depending on the amount of interference in the
+        environment, increasing or reducing sensitivity as necessary.
 
-            Documentation from Linux Kernel:
+        The parameters are:
 
-            Adaptive Noise Immunity (ANI) controls five noise immunity
-            parameters depending on the amount of interference in the
-            environment, increasing or reducing sensitivity as necessary.
+        - "noise immunity"
+        - "spur immunity"
+        - "firstep level"
+        - "OFDM weak signal detection"
+        - "CCK weak signal detection"
 
-            The parameters are:
+        Basically we look at the amount of ODFM and CCK timing errors
+        we get and then raise or lower immunity accordingly by setting
+        one or more of these parameters.
 
-            - "noise immunity"
-            - "spur immunity"
-            - "firstep level"
-            - "OFDM weak signal detection"
-            - "CCK weak signal detection"
+        :param ani_mode: The ANI mode
+        :return: True if successful
+        """
 
-            Basically we look at the amount of ODFM and CCK timing errors
-            we get and then raise or lower immunity accordingly by setting
-            one or more of these parameters.
-        '''
-        prefix = 'ath5k'
-        ani_mode = kwargs.get('ani_mode')
         self.log.info('Setting ANI sensitivity w/ = %s' % str(ani_mode))
 
         try:
-            myfile = open('/sys/kernel/debug/ieee80211/' + phy_dev + '/' + prefix + '/ani', 'w')
+            myfile = open('/sys/kernel/debug/ieee80211/' + self.phyName + '/' + self.prefix + '/ani', 'w')
             myfile.write(ani_mode)
             myfile.close()
             return True
