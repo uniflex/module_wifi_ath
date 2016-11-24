@@ -8,10 +8,10 @@ import uniflex_module_wifi
 from uniflex.core import exceptions
 
 
-__author__ = "Piotr Gawlowicz, Anatolij Zubow, Mikolaj Chwalisz"
+__author__ = "Piotr Gawlowicz, Anatolij Zubow"
 __copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
 __version__ = "0.1.0"
-__email__ = "{gawlowicz, zubow, chwalisz}@tkn.tu-berlin.de"
+__email__ = "{gawlowicz, zubow}@tkn.tu-berlin.de"
 
 
 class AthModule(uniflex_module_wifi.WifiModule):
