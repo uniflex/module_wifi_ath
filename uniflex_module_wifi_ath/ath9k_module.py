@@ -94,7 +94,7 @@ class Ath9kModule(AthModule):
 
             #  update MAC processor configuration
             self.log.info("Send ctrl req message to HMAC: %s" % conf_str)
-            self.hmac_ctrl_socket.send(conf_str)
+            self.hmac_ctrl_socket.send(conf_str.encode('ascii'))
             message = self.hmac_ctrl_socket.recv()
             self.log.info("Received ctrl reply message from HMAC: %s" % message)
             self.active_hmac_conf = hmac_conf
@@ -134,7 +134,7 @@ class Ath9kModule(AthModule):
 
             #  update MAC processor configuration
             self.log.info("Send ctrl req message to HMAC: %s" % conf_str)
-            self.hmac_ctrl_socket.send(conf_str)
+            self.hmac_ctrl_socket.send(conf_str.encode('ascii'))
             message = self.hmac_ctrl_socket.recv()
             self.log.info("Received ctrl reply from HMAC: %s" % message)
 
