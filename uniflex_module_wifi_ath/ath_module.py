@@ -1,8 +1,11 @@
+import os
 import logging
 import inspect
 import subprocess
 import iptc
 from pytc.TrafficControl import TrafficControl
+import time
+from csi import receiver as csi_receiver
 
 import uniflex_module_wifi
 from uniflex.core import exceptions
@@ -193,3 +196,34 @@ class AthModule(uniflex_module_wifi.WifiModule):
         raise exceptions.UnsupportedFunctionException(
             func_name=inspect.currentframe().f_code.co_name,
             conn_module='AthModule')
+
+
+    def get_csi(self, num_samples, withMetaData=False):
+        """
+        Reads the next csi values.
+        :param num_samples: the number of samples to read
+        :return: for withMetaData=True: tbd ELSE: the csi values as numpy matrix of dimension: num_samples x Ntx x Nrx x Nsc
+        """
+
+        if withMetaData:
+            # not yet implemented
+            raise exceptions.UnsupportedFunctionException()
+
+        # define receiver params
+        csi_dev = '/dev/CSI_dev'
+
+        # check CSI device
+        if not os.path.exists(csi_dev):
+            raise ValueError('Could not find CSI device: %s.' % csi_dev)
+
+        try:
+            debug = False
+            csi = csi_receiver.scan(debug=debug)
+
+            return csi
+
+        except Exception as e:
+            self.log.fatal("Failed to get CSI: %s" % str(e))
+            raise exceptions.FunctionExecutionFailedException(
+                func_name=inspect.currentframe().f_code.co_name,
+                err_msg='Failed to get CSI: ' + str(e))
