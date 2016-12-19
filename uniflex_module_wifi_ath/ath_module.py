@@ -186,10 +186,9 @@ class AthModule(uniflex_module_wifi.WifiModule):
                 err_msg='Failed to get per flow tx power: ' + str(e))
 
     def get_noise(self):
-        self.log.error('Get noise function not yet implemented')
-        raise exceptions.UnsupportedFunctionException(
-            func_name=inspect.currentframe().f_code.co_name,
-            conn_module='AthModule')
+        self.log.warn('Hard coded noise floor')
+        return -92
+
 
     def get_airtime_utilization(self):
         self.log.error('Get artime utilization function not yet implemented')
