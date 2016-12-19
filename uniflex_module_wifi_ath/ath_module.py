@@ -5,7 +5,7 @@ import subprocess
 import iptc
 from pytc.TrafficControl import TrafficControl
 import time
-from csi import receiver as csi_receiver
+from .csi import receiver as csi_receiver
 
 import uniflex_module_wifi
 from uniflex.core import exceptions

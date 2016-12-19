@@ -13,6 +13,7 @@ import pickle
 if __name__ == '__main__':
 
     wifi = uniflex_module_wifi_ath.AthModule()
+    wifi.device = 'phy1'
 
     wifi.my_start_function()
 
