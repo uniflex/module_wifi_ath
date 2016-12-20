@@ -9,7 +9,8 @@ from .csi import receiver as csi_receiver
 
 import uniflex_module_wifi
 from uniflex.core import exceptions
-
+from uniflex.core.common import UniFlexThread
+from sbi.wifi.events import CSISampleEvent
 
 __author__ = "Piotr Gawlowicz, Anatolij Zubow"
 __copyright__ = "Copyright (c) 2015, Technische Universität Berlin"
@@ -17,10 +18,27 @@ __version__ = "0.1.0"
 __email__ = "{gawlowicz, zubow}@tkn.tu-berlin.de"
 
 
+class CSICollector(UniFlexThread):
+    """docstring for CSICollector"""
+
+    def __init__(self, module, ival=0.01):
+        super().__init__(module)
+        self.ival = ival
+
+    def task(self):
+        while not self.is_stopped():
+            self.module.log.info("CSI sample")
+            csi = csi_receiver.scan(debug=False)
+            sample = CSISampleEvent(sample=csi)
+            self.module.send_event(sample)
+            time.sleep(self.ival)
+
+
 class AthModule(uniflex_module_wifi.WifiModule):
     def __init__(self):
         super(AthModule, self).__init__()
         self.log = logging.getLogger('AthModule')
+        self._csi_collector = None
 
     def set_mac_access_parameters(self, iface, queueId, queueParams):
         '''
@@ -226,3 +244,26 @@ class AthModule(uniflex_module_wifi.WifiModule):
             raise exceptions.FunctionExecutionFailedException(
                 func_name=inspect.currentframe().f_code.co_name,
                 err_msg='Failed to get CSI: ' + str(e))
+
+
+    def csi_collector_start(self, ival):
+
+        if self._csi_collector is None:
+            self._csi_collector = CSICollector(self, ival)
+
+        if self._csi_collector.is_running():
+            return True
+
+        self.log.info("Start CSI collector")
+        self._csi_collector.start()
+        return True
+
+
+    def csi_collector_stop(self):
+        self.log.info("Stop CSI collector")
+        self._csi_collector.stop()
+        return True
+
+
+    def is_csi_collector_running(self):
+        return self._csi_collector.is_running()
