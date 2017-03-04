@@ -30,7 +30,7 @@ class Ath9kModule(AthModule):
 
     ''' HMAC '''
 
-    def activate_radio_program(self, hmac_name, hmac_conf, interface=None):
+    def activate_radio_program(self, hmac_name=None, hmac_conf=None, interface=None):
         """
         Installs hMAC configuration and activates hMAC
         :param hmac_name: name of the HMAC conf; used as ID internally
@@ -68,7 +68,7 @@ class Ath9kModule(AthModule):
                 err_msg='Failed to install MAC processor; check HMAC installation.: ' + str(e))
 
 
-    def update_radio_program(self, hmac_name, hmac_conf, interface=None):
+    def update_radio_program(self, hmac_name=None, hmac_conf=None, interface=None):
         """
         Updates a running hMAC configuration on-the-fly
         :param hmac_name: hmac name/ID
@@ -107,7 +107,7 @@ class Ath9kModule(AthModule):
                 err_msg='Update MAC processor failed: ' + str(e))
 
 
-    def deactivate_radio_program(self, hmac_name, do_pause=False):
+    def deactivate_radio_program(self, hmac_name=None, do_pause=False):
         """
         Stops running hMAC configuration, i.e. standard CSMA/CA is used afterwards.
         :param hmac_name: the name of the HMAC to be deactivated; the last loaded in case of None
